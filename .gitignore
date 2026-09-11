@@ -1,0 +1,27 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller build artifacts (build your own via build_windows_exe.bat; don't commit output)
+build/
+dist/
+release/
+*.spec
+
+# Local tool config (may contain a personal output path / namespace)
+.f5xc_access_log_tool_v5.json
+
+# Downloaded logs / exports (never commit real log data)
+*.csv
+*.jsonl
+f5xc_*_logs_*.csv
+f5xc_*_logs_*.json
+f5xc_*_logs_*.debug.log
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
