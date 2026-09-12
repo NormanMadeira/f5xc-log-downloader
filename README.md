@@ -74,7 +74,7 @@ This project sits in between: a GUI that picks the right endpoint, handles pagin
 <summary><b>Option A — run the prebuilt Windows EXE</b></summary>
 <br>
 
-Download `F5XC-Log-Downloader v1.0.exe` from the [latest Release](../../releases/latest), double-click it, then open `http://127.0.0.1:5000` in your browser.
+Download `F5XC-Log-Downloader-v1.0.0.exe	` from the [latest Release](../../releases/latest), double-click it, then open `http://127.0.0.1:5000` in your browser.
 </details>
 
 <details>
@@ -100,13 +100,17 @@ This installs Flask/Requests/PyInstaller if needed, builds a onefile EXE, and dr
 
 <br>
 
-## Windows security warnings
+### Windows Security / Antivirus Warnings
 
-The prebuilt Windows executable is currently unsigned because it does not use a paid code-signing certificate.
+The prebuilt Windows executable is currently **unsigned** because it does not use a paid code-signing certificate. As a result, Windows SmartScreen and antivirus software may display warnings when running the application.
 
-As a result, Windows SmartScreen or antivirus software may display warnings when you run the executable.
+The current VirusTotal scan for **F5XC-Log-Downloader-v1.0.0.exe** shows **6 of 70 security vendors flagging the file**. The detections include Microsoft, Elastic, SecureAge, Bkav Pro, Skyhigh, and Zillya.
 
-This does not by itself indicate that the application is malicious. However, users should follow their organization's security procedures when evaluating software.
+These results should be considered before running the prebuilt executable. The project does not claim that these detections are false positives, and users should follow their organization's security procedures when evaluating software.
+
+The full VirusTotal report is available here:
+
+**[View the v1.0.0 VirusTotal scan](https://www.virustotal.com/gui/file/e0b233c3c420dc863b6e89ac92a1e0b435ff83ce60afef292bf0c2e497606a95/detection)**
 
 If you do not want to run the prebuilt executable, you can build the application yourself from the source code in this repository (see [Option C](#quick-start) above).
 
