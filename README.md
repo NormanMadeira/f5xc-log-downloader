@@ -74,7 +74,7 @@ This project sits in between: a GUI that picks the right endpoint, handles pagin
 <summary><b>Option A — run the prebuilt Windows EXE</b></summary>
 <br>
 
-Download `F5XC-Log-Downloader v5.8.exe` from the [latest Release](../../releases/latest), double-click it, then open `http://127.0.0.1:5000` in your browser.
+Download `F5XC-Log-Downloader v1.0.exe` from the [latest Release](../../releases/latest), double-click it, then open `http://127.0.0.1:5000` in your browser.
 </details>
 
 <details>
@@ -83,7 +83,7 @@ Download `F5XC-Log-Downloader v5.8.exe` from the [latest Release](../../releases
 
 ```bash
 pip install flask requests
-python f5xc_log_downloader_v5.py
+python f5xc_log_downloader.py
 ```
 Then open `http://127.0.0.1:5000`.
 </details>
@@ -189,7 +189,7 @@ Users are responsible for ensuring that they have appropriate authorization to a
 
 ## Download
 
-The latest release, **v5.8.0**, is available on the [Releases](../../releases/latest) page, including the prebuilt Windows executable `F5XC-Log-Downloader v5.8.exe`.
+The latest release, **v1.0.0**, is available on the [Releases](../../releases/latest) page, including the prebuilt Windows executable `F5XC-Log-Downloader v1.0.exe`.
 
 <br>
 

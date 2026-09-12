@@ -1,6 +1,6 @@
 # Changelog
 
-## v5.8 (current)
+## v1.0.0 (current) — Initial public release
 
 ### Fixed
 - **Root cause of downloads appearing to hang / "Stop" doing nothing.** Output-directory creation, time parsing, and log-type validation previously ran *outside* the main try/except block in the download worker. Any failure there (e.g. an invalid or inaccessible output path) silently killed the background thread with no status update — the job stayed "running" forever in the UI, and Stop had nothing left to signal. The entire worker is now wrapped so any failure reports a clean, specific error within about a second.
@@ -29,8 +29,7 @@
 - Display of which configuration file/source is currently loaded, under Configuration Backups.
 - Client-side warning when the selected time range's start time is likely too old for F5 XC to accept, based on empirically-confirmed behavior (see "Notes on an undocumented API limit" below).
 
-## v5.0–v5.3 (prior versions)
-Initial versions with the core download/pagination/CSV export flow, packaged via a PyInstaller-based Windows build script.
+This release consolidates a series of fixes and UI changes made during iterative development prior to the first public release — see the sections below for the most notable technical finding along the way.
 
 ---
 
@@ -46,4 +45,4 @@ This was initially misdiagnosed twice before being correctly identified:
 
 A full export of F5's own rendered API documentation was checked directly for any mention of "retention," "days," or "maximum supported" in the relevant operation schemas — zero matches. So this limit is real (confirmed through direct testing) but is not part of F5's published API contract for these operations. It also does not appear to be a single universal number across all three log types — in testing, Audit logs successfully returned data further back than Firewall logs did under the same conditions.
 
-The **"Check Range"** feature (v5.8) exists specifically to make probing this boundary fast — a single-record request instead of a full, multi-minute download attempt.
+The **"Check Range"** feature exists specifically to make probing this boundary fast — a single-record request instead of a full, multi-minute download attempt.

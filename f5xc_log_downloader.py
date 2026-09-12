@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from collections import OrderedDict
 import requests
 
-APP_VERSION = "5.8"
+APP_VERSION = "1.0"
 INDEX_HTML = r'''<!doctype html>
 <html lang="en" data-theme="light">
 <head>
@@ -525,7 +525,7 @@ refreshQueryMode();updatePreview();updateTimeLabels();updateTimePreview();
 app = Flask(__name__)
 
 HOME = Path.home()
-CONFIG_FILE = HOME / ".f5xc_access_log_tool_v5.json"
+CONFIG_FILE = HOME / ".f5xc_log_downloader_config.json"
 jobs = {}
 jobs_lock = threading.Lock()
 job_controls = {}

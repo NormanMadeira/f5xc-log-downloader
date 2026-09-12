@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title F5 XC Log Downloader - Build EXE (V5.8)
+title F5 XC Log Downloader - Build EXE (V1.0)
 cd /d "%~dp0"
 
 echo ============================================
@@ -37,7 +37,7 @@ if errorlevel 1 (
 
 echo.
 echo Building standalone EXE with PyInstaller...
-%PYCMD% -m PyInstaller --clean --noconfirm --onefile --name F5XC-Log-Downloader f5xc_log_downloader_v5.py
+%PYCMD% -m PyInstaller --clean --noconfirm --onefile --name F5XC-Log-Downloader f5xc_log_downloader.py
 if errorlevel 1 (
     echo [ERROR] PyInstaller build failed. See the output above for details.
     pause
