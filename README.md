@@ -47,6 +47,7 @@ This project sits in between: a GUI that picks the right endpoint, handles pagin
 ![F5 XC connection fields and time range picker with quick-range dropdown](docs/screenshot-connection-timerange.png)
 ![Advanced query editor showing F5 XC's documented allowed query fields per log type](docs/screenshot-query.png)
 ![Download progress view with live stats and activity log](docs/screenshot-download.png)
+![Download options showing sort order, pagination, CSV fields, output directory, and logging settings](docs/screenshot-download-options.png)
 
 </details>
 
@@ -193,7 +194,7 @@ Users are responsible for ensuring that they have appropriate authorization to a
 
 ## Download
 
-The latest release, **v1.0.0**, is available on the [Releases](../../releases/latest) page, including the prebuilt Windows executable `F5XC-Log-Downloader v1.0.exe`.
+The latest release, **v1.0.0**, is available on the [Releases](../../releases/latest) page, including the prebuilt Windows executable `F5XC-Log-Downloader-v1.0.0.exe`.
 
 <br>
 
