@@ -110,7 +110,7 @@ This does not by itself indicate that the application is malicious. However, use
 
 If you do not want to run the prebuilt executable, you can build the application yourself from the source code in this repository (see [Option C](#quick-start) above).
 
-**VirusTotal (v1.1.0 EXE):** 3 of 70 engines flagged the file (Bkav Pro, SecureAge, Skyhigh SWG). [Full report](https://www.virustotal.com/gui/file/b4391a6cb6dec4365f0e453a5df107bed0ae45253ca639e10cb1d9a6fa95f28e/detection)
+**VirusTotal (v1.1.0 EXE):** 4 of 70 engines flagged the file (Bkav Pro, Microsoft, SecureAge, Skyhigh SWG). [Full report](https://www.virustotal.com/gui/file/1a19034ff20e8c63d3a7f198120f1cc55f941ae1f716f2ff1595adcf4f55e9b1/detection)
 
 <br>
 
