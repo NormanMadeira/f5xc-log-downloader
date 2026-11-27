@@ -2,7 +2,7 @@
 
 # F5 XC Log Downloader
 
-**Download Access, Security/Firewall, and Audit logs from F5 Distributed Cloud to CSV using a local desktop GUI, instead of scripting the API directly.**
+**Download Access logs, Audit logs, and WAF Security Events from F5 Distributed Cloud to CSV using a local desktop GUI, instead of scripting the API directly.**
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)
@@ -15,7 +15,7 @@
 
 <br>
 
-A self-contained desktop tool for F5 Distributed Cloud (F5 XC) — formerly known as Volterra — that pulls Access logs, Security/Firewall (WAF) logs, or Audit logs and exports them to CSV, through a local browser-based UI instead of calling F5's REST API directly.
+A self-contained desktop tool for F5 Distributed Cloud (F5 XC) — formerly known as Volterra — that pulls Access logs, Audit logs, or WAF Security Events and exports them to CSV, through a local browser-based UI instead of calling F5's REST API directly.
 
 Runs as a small local web app (Python/Flask backend, single-page UI). Can be run from source, or used as a standalone Windows `.exe` built with PyInstaller.
 
@@ -27,7 +27,7 @@ Runs as a small local web app (Python/Flask backend, single-page UI). Can be run
 
 The F5 XC Console provides an easy way to search and download logs, but a single GUI download is limited to 500 logs. For larger investigations, this can mean repeatedly downloading multiple batches.
 
-F5 Distributed Cloud also exposes this same log data through a REST API (`AccessLogQueryV2`, `FirewallLogQuery`, `AuditLogQueryV2`, and their `/scroll` variants), documented at [docs.cloud.f5.com](https://docs.cloud.f5.com/docs-v2/api/log). Working with the API directly means handling authentication, endpoint selection, query syntax, pagination tokens, and JSON responses yourself — reasonable for a script, but overhead if you just want a CSV of last week's WAF events or an audit trail for a review.
+F5 Distributed Cloud also exposes this same log data through a REST API (`AccessLogQueryV2`, `AuditLogQueryV2`, and `SecurityEventsQuery` for WAF security events, with their scroll variants), documented at [docs.cloud.f5.com](https://docs.cloud.f5.com/docs-v2/api/log). Working with the API directly means handling authentication, endpoint selection, query syntax, pagination tokens, and JSON responses yourself — reasonable for a script, but overhead if you just want a CSV of last week's WAF events or an audit trail for a review.
 
 This project sits in between: a GUI that picks the right endpoint, handles pagination automatically, and writes a CSV, without requiring API scripting or a Postman collection.
 
@@ -47,7 +47,6 @@ This project sits in between: a GUI that picks the right endpoint, handles pagin
 ![F5 XC connection fields and time range picker with quick-range dropdown](docs/screenshot-connection-timerange.png)
 ![Advanced query editor showing F5 XC's documented allowed query fields per log type](docs/screenshot-query.png)
 ![Download progress view with live stats and activity log](docs/screenshot-download.png)
-![Download options showing sort order, pagination, CSV fields, output directory, and logging settings](docs/screenshot-download-options.png)
 
 </details>
 
@@ -57,8 +56,8 @@ This project sits in between: a GUI that picks the right endpoint, handles pagin
 
 | | |
 |---|---|
-| 🗃️ **All three log types** | Access, Security/Firewall (WAF), and Audit logs — each using F5 XC's documented query syntax |
-| 🔄 **Automatic pagination** | Pages through large result sets automatically (Search After, with a fallback to Scroll continuation — see [Known Limitations](#known-limitations)) |
+| 🗃️ **Three log sources** | Access logs, Audit logs, and WAF Security Events — each using the F5 XC API it is documented for |
+| 🔄 **Automatic pagination** | Pages through large result sets automatically using scroll-token continuation, confirmed to work reliably against F5 XC's live API |
 | 🔍 **Advanced filtering** | F5 XC's native `{field="value"}` query syntax, with the documented allowed fields shown inline per log type |
 | 📤 **CSV / full JSON export** | Plus an always-on activity/debug log for troubleshooting |
 | 📊 **Live progress** | Pause / resume / stop, with count validation against F5's own reported `total_hits` |
@@ -75,7 +74,7 @@ This project sits in between: a GUI that picks the right endpoint, handles pagin
 <summary><b>Option A — run the prebuilt Windows EXE</b></summary>
 <br>
 
-Download `F5XC-Log-Downloader-v1.0.0.exe	` from the [latest Release](../../releases/latest), double-click it, then open `http://127.0.0.1:5000` in your browser.
+Download `F5XC-Log-Downloader-v1.1.0.exe` from the [latest Release](../../releases/latest), double-click it, then open `http://127.0.0.1:5000` in your browser.
 </details>
 
 <details>
@@ -96,24 +95,22 @@ Then open `http://127.0.0.1:5000`.
 ```
 build_windows_exe.bat
 ```
-This installs Flask/Requests/PyInstaller if needed, builds a onefile EXE, and drops it in `release\F5XC-Log-Downloader.exe`.
+This installs Flask/Requests/PyInstaller if needed, builds a onefile EXE, and drops it in `release\F5XC-Log-Downloader-v1.1.0.exe`. The version is part of the file name, so each build is identifiable.
 </details>
 
 <br>
 
-### Windows Security / Antivirus Warnings
+## Windows security warnings
 
-The prebuilt Windows executable is currently **unsigned** because it does not use a paid code-signing certificate. As a result, Windows SmartScreen and antivirus software may display warnings when running the application.
+The prebuilt Windows executable is currently unsigned because it does not use a paid code-signing certificate.
 
-The current VirusTotal scan for **F5XC-Log-Downloader-v1.0.0.exe** shows **6 of 70 security vendors flagging the file**. The detections include Microsoft, Elastic, SecureAge, Bkav Pro, Skyhigh, and Zillya.
+As a result, Windows SmartScreen or antivirus software may display warnings when you run the executable.
 
-These results should be considered before running the prebuilt executable. The project does not claim that these detections are false positives, and users should follow their organization's security procedures when evaluating software.
-
-The full VirusTotal report is available here:
-
-**[View the v1.0.0 VirusTotal scan](https://www.virustotal.com/gui/file/e0b233c3c420dc863b6e89ac92a1e0b435ff83ce60afef292bf0c2e497606a95/detection)**
+This does not by itself indicate that the application is malicious. However, users should follow their organization's security procedures when evaluating software.
 
 If you do not want to run the prebuilt executable, you can build the application yourself from the source code in this repository (see [Option C](#quick-start) above).
+
+**VirusTotal (v1.1.0 EXE):** 3 of 70 engines flagged the file (Bkav Pro, SecureAge, Skyhigh SWG). [Full report](https://www.virustotal.com/gui/file/b4391a6cb6dec4365f0e453a5df107bed0ae45253ca639e10cb1d9a6fa95f28e/detection)
 
 <br>
 
@@ -145,17 +142,20 @@ Users are responsible for ensuring that they have appropriate authorization to a
 
 *(why this is more than a form wrapper)*
 
-The application encountered a restriction on how far back a query's `start_time` could be set. The behavior did not appear to be represented in the published API schema, so it was investigated through direct testing — including ruling out an incorrect initial theory (that it was a maximum *range width*) before narrowing it down to a restriction on how *old* `start_time` is allowed to be, regardless of the window's width. This is documented in more detail in [CHANGELOG.md](CHANGELOG.md).
+The app first queried WAF security events through the wrong F5 API (`FirewallLogQuery`). That endpoint rejected any `start_time` older than about 8 days, while the XC Console showed up to 30 days. Working through this included ruling out an incorrect initial theory (that the limit was a maximum *range width*). The real cause was the endpoint: F5 TAC confirmed that security events must be queried with the Application Security Monitoring API (`SecurityEventsQuery` / `SecurityEventsScrollQuery`), which is what version 1.1.0 uses. The full investigation is in [CHANGELOG.md](CHANGELOG.md).
 
-This behavior is based on testing against the F5 XC environment during development and should not be interpreted as an official F5 platform specification. The "Check Range" feature exists because of this finding — it lets you probe the current behavior for a given time range and log type in one click, instead of waiting through a failed multi-minute download.
+The "Check Range" feature remains useful for checking any log type and time range in one click before running a full download.
 
 <br>
 
 ## Known limitations
 
-- A restriction was observed on how old a query's `start_time` can be (it appears to vary by log type). This is based on testing, not on documented F5 platform behavior. The tool surfaces F5's rejection message directly and offers "Check Range" to check the current behavior quickly, but cannot bypass this restriction — it is a platform-side constraint, not something the client can work around.
-- A `scroll_id` (used for large result sets) is only valid for approximately 2 minutes between requests, per F5's own schema documentation — pausing a large download for longer than that may require restarting it.
-- Built and tested against F5 XC's Log Query V2 / Scroll API family; other F5 XC log APIs (e.g. Application Security Monitoring) are not currently used by this tool.
+- **Access logs** are retained for 7 days (F5 retention documentation). The app blocks any range whose start is older than 7 days, and warns about any range longer than 7 days.
+- **Ranges longer than 30 days are not allowed** for any log type.
+- **Audit logs** return data across a 30-day range through this tool in testing.
+- **Security Events (WAF)** use the Application Security Monitoring API. The app sends the `SecurityEventsQuery` request to `/api/data/namespaces/{namespace}/app_security/events` and continues with the `scroll` endpoint.
+- A `scroll_id` is only valid for approximately 2 minutes between requests, per F5's schema documentation. Pausing a large download for longer than that may require restarting it.
+- Pagination uses scroll continuation for all log types. The "Search After" option is kept in the UI for compatibility, but it uses the same scroll mechanism internally, because F5 rejects requests that combine `scroll` and `search_after`.
 - The prebuilt Windows executable is unsigned (see [Windows security warnings](#windows-security-warnings) above).
 
 <br>
@@ -174,9 +174,9 @@ Issues and pull requests are welcome. This started as a focused, single-purpose 
 
 ## F5 Distributed Cloud API
 
-This tool is built against F5 Distributed Cloud's published Log Query API family — `AccessLogQueryV2`, `FirewallLogQuery`, `AuditLogQueryV2`, and their `/scroll` variants — documented at:
+This tool is built against F5 Distributed Cloud's published APIs: `AccessLogQueryV2` and `AuditLogQueryV2` (log APIs) and `SecurityEventsQuery` / `SecurityEventsScrollQuery` (Application Security Monitoring API) for WAF security events. Documentation:
 
-[https://docs.cloud.f5.com/docs-v2/api/log](https://docs.cloud.f5.com/docs-v2/api/log)
+[https://docs.cloud.f5.com/docs-v2/api/log](https://docs.cloud.f5.com/docs-v2/api/log) and [https://docs.cloud.f5.com/docs-v2/api/app-security](https://docs.cloud.f5.com/docs-v2/api/app-security)
 
 See [A real debugging story](#a-real-debugging-story) above for one case where observed behavior didn't fully align with the published schema.
 
@@ -194,7 +194,7 @@ Users are responsible for ensuring that they have appropriate authorization to a
 
 ## Download
 
-The latest release, **v1.0.0**, is available on the [Releases](../../releases/latest) page, including the prebuilt Windows executable `F5XC-Log-Downloader-v1.0.0.exe`.
+The latest release, **v1.1.0**, is available on the [Releases](../../releases/latest) page, including the prebuilt Windows executable `F5XC-Log-Downloader-v1.1.0.exe`.
 
 <br>
 

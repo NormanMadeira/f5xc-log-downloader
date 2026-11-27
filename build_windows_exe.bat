@@ -1,6 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
-title F5 XC Log Downloader - Build EXE (V1.0)
+rem Version is part of the EXE name so each build is identifiable.
+set "APP_NAME=F5XC-Log-Downloader-v1.1.0"
+title F5 XC Log Downloader - Build EXE (V1.1.0)
 cd /d "%~dp0"
 
 echo ============================================
@@ -37,7 +39,7 @@ if errorlevel 1 (
 
 echo.
 echo Building standalone EXE with PyInstaller...
-%PYCMD% -m PyInstaller --clean --noconfirm --onefile --name F5XC-Log-Downloader f5xc_log_downloader.py
+%PYCMD% -m PyInstaller --clean --noconfirm --onefile --name %APP_NAME% f5xc_log_downloader.py
 if errorlevel 1 (
     echo [ERROR] PyInstaller build failed. See the output above for details.
     pause
@@ -47,13 +49,13 @@ if errorlevel 1 (
 echo.
 echo Preparing a clean folder to share...
 if not exist "release" mkdir "release"
-copy /y "dist\F5XC-Log-Downloader.exe" "release\F5XC-Log-Downloader.exe" >nul
+copy /y "dist\%APP_NAME%.exe" "release\%APP_NAME%.exe" >nul
 if exist "README_V5_1.txt" copy /y "README_V5_1.txt" "release\README.txt" >nul
 
 echo.
 echo ============================================
 echo  BUILD COMPLETE
-echo  EXE ready to share: %CD%\release\F5XC-Log-Downloader.exe
+echo  EXE ready to share: %CD%\release\%APP_NAME%.exe
 echo.
 echo  Note: some antivirus/Windows Defender SmartScreen may flag a
 echo  freshly built PyInstaller EXE as "unrecognized" on first run.

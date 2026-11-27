@@ -1,11 +1,33 @@
+import sys
+
+# Native folder-picker helper mode: when run as "<this> --_browse_dialog_helper [initial_dir]"
+# it opens the Windows folder dialog, prints the chosen folder, and exits without starting Flask.
+_BROWSE_HELPER_FLAG = '--_browse_dialog_helper'
+if len(sys.argv) >= 2 and sys.argv[1] == _BROWSE_HELPER_FLAG:
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        initial = sys.argv[2] if len(sys.argv) > 2 else ''
+        root = tk.Tk(); root.withdraw()
+        try:
+            root.attributes('-topmost', True)
+        except Exception:
+            pass
+        chosen = filedialog.askdirectory(initialdir=initial or None, title="Select output folder", mustexist=True)
+        root.destroy()
+        sys.stdout.write(chosen or '')
+    except Exception as e:
+        sys.stderr.write(f"Could not open the folder picker: {e}\n")
+    sys.exit(0)
+
 from flask import Flask, render_template_string, request, jsonify
 from pathlib import Path
-import csv, json, os, re, sys, threading, time, traceback
+import csv, json, os, re, subprocess, sys, threading, time, traceback
 from datetime import datetime, timedelta, timezone
 from collections import OrderedDict
 import requests
 
-APP_VERSION = "1.0"
+APP_VERSION = "1.1.0"
 INDEX_HTML = r'''<!doctype html>
 <html lang="en" data-theme="light">
 <head>
@@ -130,7 +152,7 @@ select.xdd-native{position:absolute!important;width:1px!important;height:1px!imp
 </div></header>
 
 <main>
-<div class="hero"><h2>F5 XC Log Downloader</h2><p>Download Access, Security / Firewall, or Audit logs from F5 Distributed Cloud and export them to CSV.</p></div>
+<div class="hero"><h2>F5 XC Log Downloader</h2><p>Download Access, Security Events (WAF), or Audit logs from F5 Distributed Cloud and export them to CSV.</p></div>
 
 <form id="form">
 
@@ -145,10 +167,10 @@ select.xdd-native{position:absolute!important;width:1px!important;height:1px!imp
 </div>
 
 <div class="card">
- <div class="section-head"><div class="section-title"><div class="num">2</div><div class="title-text"><h3>Log Type</h3><div class="hint">Choose which F5 XC log API to query. Access logs cover application traffic, Security / Firewall logs contain WAF/policy events, and Audit logs record configuration/API activity.</div></div></div></div>
+ <div class="section-head"><div class="section-title"><div class="num">2</div><div class="title-text"><h3>Log Type</h3><div class="hint">Choose which F5 XC log API to query. Access logs cover application traffic, Security Events contain WAF security events, and Audit logs record configuration/API activity.</div></div></div></div>
  <div class="choice-grid">
   <div class="choice"><input type="radio" id="typeAccess" name="log_type" value="access" checked><label for="typeAccess"><strong>Access Logs</strong><span>Application requests and responses</span></label></div>
-  <div class="choice"><input type="radio" id="typeFirewall" name="log_type" value="firewall"><label for="typeFirewall"><strong>Security / Firewall</strong><span>WAF events and policy hits</span></label></div>
+  <div class="choice"><input type="radio" id="typeSecurity" name="log_type" value="security"><label for="typeSecurity"><strong>Security Events (WAF)</strong><span>WAF security events (Security Events API)</span></label></div>
   <div class="choice"><input type="radio" id="typeAudit" name="log_type" value="audit"><label for="typeAudit"><strong>Audit Logs</strong><span>Configuration and API activity</span></label></div>
  </div>
 </div>
@@ -174,6 +196,9 @@ select.xdd-native{position:absolute!important;width:1px!important;height:1px!imp
     <option value="360">Last 6 hours</option>
     <option value="720">Last 12 hours</option>
     <option value="1440">Last 24 hours</option>
+    <option value="10080">Last 7 days</option>
+    <option value="20160">Last 14 days</option>
+    <option value="43200">Last 30 days</option>
     <option value="today">Today</option>
     <option value="yesterday">Yesterday</option>
     <option value="custom">Custom</option>
@@ -188,7 +213,7 @@ select.xdd-native{position:absolute!important;width:1px!important;height:1px!imp
   </div>
   <div><label class="field" id="start_label">Start (IST)</label><input type="datetime-local" step="1" id="start" required></div>
   <div><label class="field" id="end_label">End (IST)</label><input type="datetime-local" step="1" id="end" required></div>
-  <div class="full"><div class="help" id="utc_preview">API time preview: enter a start and end time to see the UTC values that will be sent to F5 XC.</div></div>
+  <div class="full"><div id="rangeNotice" class="hidden"></div><div class="help" id="utc_preview">API time preview: enter a start and end time to see the UTC values that will be sent to F5 XC.</div></div>
 </div>
 </div>
 
@@ -206,13 +231,13 @@ select.xdd-native{position:absolute!important;width:1px!important;height:1px!imp
   <b>Only the fields below can be used in a query filter</b> for each log type (per F5's own API schema - this is the full allowed list, not just examples; it's a different, shorter list than the many fields present in a returned log record):<br>
   <b>Access:</b> app_type, vh_name, src_site, src, src_instance, dst_site, dst, dst_instance, method, req_path, rsp_code, browser_type, city, country, device_type<br>
   &nbsp;&nbsp;e.g. <code>{src="service1",dst="service2"}</code> &nbsp; <code>{vh_name="vh1",rsp_code=~"4.*"}</code><br>
-  <b>Firewall / Security:</b> site, src_ip, dst_ip, policy_hits.policy, policy_hits.policy_rule, policy_hits.result (allow|deny|default_deny)<br>
-  &nbsp;&nbsp;e.g. <code>{site="site-1"}</code> &nbsp; <code>{policy_hits.result="deny"}</code><br>
+  <b>Security Events (WAF):</b> vh_name, sec_event_type, src_site, city, country<br>
+  &nbsp;&nbsp;e.g. <code>{vh_name="vh1",sec_event_type="waf_sec_event"}</code> &nbsp; <code>{country="United States",city="California"}</code><br>
   <b>Audit:</b> user, src_site, src, src_instance, dst_site, dst, dst_instance, method, req_path, rsp_code<br>
   &nbsp;&nbsp;e.g. <code>{user="abc",rsp_code="404"}</code><br><br>
   Full schema reference (requires your XC API Developer Portal login):
   <a href="https://docs.cloud.f5.com/docs-v2/api/log#operation/ves.io.schema.log.CustomAPI.AccessLogQueryV2" target="_blank" rel="noopener">Access Log Query V2</a> ·
-  <a href="https://docs.cloud.f5.com/docs-v2/api/log#operation/ves.io.schema.log.CustomAPI.FirewallLogQuery" target="_blank" rel="noopener">Firewall Log Query</a> ·
+  <a href="https://docs.cloud.f5.com/docs-v2/api/app-security#operation/ves.io.schema.app_security.AppSecurityMonitoringAPI.SecurityEventsQuery" target="_blank" rel="noopener">Security Events Query</a> ·
   <a href="https://docs.cloud.f5.com/docs-v2/api/log#operation/ves.io.schema.log.CustomAPI.AuditLogQueryV2" target="_blank" rel="noopener">Audit Log Query V2</a>
  </div>
 </div>
@@ -244,7 +269,7 @@ select.xdd-native{position:absolute!important;width:1px!important;height:1px!imp
    <div class="help">All fields is best for investigation; Common fields creates a smaller operational CSV.</div>
   </div>
   <div id="custom_wrap" class="full hidden"><label class="field">Custom CSV fields</label><input id="custom_fields" placeholder="time,vh_name,method,req_path,rsp_code"></div>
-  <div><label class="field">Output directory</label><div style="display:flex;gap:8px"><input id="output_dir" required value="{{ config.get('output_dir','') }}" placeholder="<output-directory>" style="flex:1"><button type="button" class="btn" onclick="openBrowseModal()">Browse…</button></div><div class="help">The tool removes common invisible Unicode formatting characters from pasted paths.</div></div>
+  <div><label class="field">Output directory</label><div style="display:flex;gap:8px"><input id="output_dir" required value="{{ config.get('output_dir','') }}" placeholder="<output-directory>" style="flex:1"><button type="button" class="btn" id="browseBtn" onclick="browseFolder()">Browse…</button></div><div class="help">The tool removes common invisible Unicode formatting characters from pasted paths.</div></div>
   <div><label class="field">Logging detail</label>
    <select id="log_level" class="xdd-native">
     <option value="1">Normal</option>
@@ -284,15 +309,6 @@ select.xdd-native{position:absolute!important;width:1px!important;height:1px!imp
 </div>
 </form>
 
-<div id="browseModalBackdrop" class="modal-backdrop hidden" onclick="if(event.target===this)closeBrowseModal()">
-  <div class="modal">
-   <h3 style="margin-top:0">Select output folder</h3>
-   <div style="display:flex;gap:8px;margin-bottom:11px"><input id="browsePath" style="flex:1" placeholder="Path"><button type="button" class="btn" onclick="browseGo($('browsePath').value,'')">Go</button></div>
-   <div id="browseUp" class="help" style="cursor:pointer;margin-bottom:7px;min-height:15px"></div>
-   <div id="browseList" style="max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:10px"></div>
-   <div style="display:flex;justify-content:flex-end;gap:9px;margin-top:15px"><button type="button" class="btn" onclick="closeBrowseModal()">Cancel</button><button type="button" class="btn primary" onclick="selectBrowseFolder()">Select This Folder</button></div>
-  </div>
-</div>
 </main>
 
 <script>
@@ -327,6 +343,36 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
 document.querySelectorAll('select.xdd-native').forEach(enhanceSelect);
 
 /* ---- Time range ---- */
+// Retention per log type: Access logs 7 days; Audit and Security Events 30 days. Maximum range is 30 days.
+const RETENTION_DAYS={access:7,audit:30,security:30};
+const MAX_RANGE_DAYS=30, TOL_MS=60000;
+let activePresetMinutes=10, jobRunning=false;
+function validateRange(){
+ const lt=selectedType(), zone=document.querySelector('input[name=timeZone]:checked').value;
+ const s=parseUserTime($('start').value,zone), e=parseUserTime($('end').value,zone);
+ const errors=[], notes=[];
+ if(!s||!e) return {errors:['Enter a start and end date/time.'],notes};
+ const st=new Date(s).getTime(), en=new Date(e).getTime(), now=Date.now();
+ if(en<=st) errors.push('The end time must be after the start time.');
+ const spanDays=(en-st)/86400000;
+ if(spanDays>MAX_RANGE_DAYS+1e-9) errors.push('A range longer than 30 days is not allowed. Choose a range of 30 days or less.');
+ if(spanDays>7+1e-9) notes.push('Beyond 7 days, Access logs cannot be retrieved. Only Security Events and Audit logs can be retrieved up to 30 days.');
+ const ret=RETENTION_DAYS[lt]||30;
+ if(now-st>ret*86400000+TOL_MS){
+   const name=lt==='access'?'Access logs':lt==='audit'?'Audit logs':'Security Events';
+   errors.push(name+' can only be retrieved for the last '+ret+' days. Move the start time forward, or use the '+(ret===7?'Last 7 days':'Last 30 days')+' preset.');
+ }
+ return {errors,notes};
+}
+function updateRangeNotice(){
+ const r=validateRange(), box=$('rangeNotice');
+ const lines=[...r.errors.map(t=>({t,k:'error'})),...r.notes.map(t=>({t,k:'warning'}))];
+ box.innerHTML='';
+ lines.forEach(l=>{const d=document.createElement('div');d.className='status '+l.k;d.style.marginTop='6px';d.textContent=(l.k==='error'?'✕ ':'⚠ ')+l.t;box.appendChild(d)});
+ box.classList.toggle('hidden',lines.length===0);
+ if(!jobRunning)$('download').disabled=r.errors.length>0;
+}
+function refreshRelativeRange(){ if(activePresetMinutes) setRange(activePresetMinutes); }
 function parseUserTime(v,zone){
  const s=(v||'').trim();if(!s)return null;
  let d;
@@ -355,35 +401,36 @@ function setRange(minutes){
  settingRangeProgrammatically=true;
  $('start').value=formatInputTime(s,zone);$('end').value=formatInputTime(e,zone);
  settingRangeProgrammatically=false;
- updatePreview();updateTimePreview();
+ updatePreview();updateTimePreview();updateRangeNotice();
 }
 function todayRange(){
  const n=new Date(),z=document.querySelector('input[name=timeZone]:checked').value,offset=z==='IST'?330:0,local=new Date(n.getTime()+offset*60000),e=new Date(Date.UTC(local.getUTCFullYear(),local.getUTCMonth(),local.getUTCDate())-offset*60000);
  settingRangeProgrammatically=true;
  $('start').value=formatInputTime(e,z);$('end').value=formatInputTime(n,z);
  settingRangeProgrammatically=false;
- updatePreview();updateTimePreview();
+ updatePreview();updateTimePreview();updateRangeNotice();
 }
 function yesterdayRange(){
  const n=new Date(),z=document.querySelector('input[name=timeZone]:checked').value,offset=z==='IST'?330:0,local=new Date(n.getTime()+offset*60000),mid=new Date(Date.UTC(local.getUTCFullYear(),local.getUTCMonth(),local.getUTCDate())-offset*60000),s=new Date(mid.getTime()-86400000);
  settingRangeProgrammatically=true;
  $('start').value=formatInputTime(s,z);$('end').value=formatInputTime(mid,z);
  settingRangeProgrammatically=false;
- updatePreview();updateTimePreview();
+ updatePreview();updateTimePreview();updateRangeNotice();
 }
 $('range_preset').onchange=()=>{
  const v=$('range_preset').value;
- if(v==='custom')return;
+ activePresetMinutes=(v==='today'||v==='yesterday'||v==='custom')?null:+v;
+ if(v==='custom'){updateRangeNotice();return}
  if(v==='today')todayRange();else if(v==='yesterday')yesterdayRange();else setRange(+v);
 };
 document.querySelectorAll('input[name=timeZone]').forEach(x=>x.onchange=()=>{
  const v=$('range_preset').value;
  if(v==='today')todayRange();else if(v==='yesterday')yesterdayRange();else if(v!=='custom')setRange(+v);
- updateTimeLabels();
+ updateTimeLabels();updateRangeNotice();
 });
 ['start','end'].forEach(id=>$(id).addEventListener('input',()=>{
- if(!settingRangeProgrammatically){$('range_preset').value='custom';$('range_preset')._xddSync()}
- updateTimePreview();updatePreview();
+ if(!settingRangeProgrammatically){activePresetMinutes=null;$('range_preset').value='custom';$('range_preset')._xddSync()}
+ updateTimePreview();updatePreview();updateRangeNotice();
 }));
 setRange(10);
 
@@ -394,7 +441,7 @@ function refreshQueryMode(){
  $('advanced').classList.toggle('hidden',m!=='advanced');
  updatePreview();
 }
-document.querySelectorAll('input[name=log_type]').forEach(x=>x.onchange=updatePreview);
+document.querySelectorAll('input[name=log_type]').forEach(x=>x.onchange=()=>{updatePreview();updateRangeNotice()});
 document.querySelectorAll('input[name=qmode]').forEach(x=>x.onchange=refreshQueryMode);
 $('advanced_query').addEventListener('input',updatePreview);
 $('csv_mode').addEventListener('change',()=>$('custom_wrap').classList.toggle('hidden',$('csv_mode').value!=='3'));
@@ -406,12 +453,14 @@ function updatePreview(){$('preview').textContent=query()||'<ALL MATCHING LOGS>'
 function collect(){return {log_type:selectedType(),host:$('host').value,namespace:$('namespace').value,token:$('token').value,start_time:parseUserTime($('start').value,document.querySelector('input[name=timeZone]:checked').value),end_time:parseUserTime($('end').value,document.querySelector('input[name=timeZone]:checked').value),query:query(),pagination:document.querySelector('input[name=paginationChoice]:checked').value,sort:$('sort').value,csv_mode:$('csv_mode').value,custom_fields:$('custom_fields').value,output_dir:$('output_dir').value,log_level:$('log_level').value,keep_json:$('keep_json').checked,open_after:$('open_after').checked,time_zone:document.querySelector('input[name=timeZone]:checked').value}}
 let activeJob=null,paused=false;
 $('form').onsubmit=async e=>{
- e.preventDefault();$('download').disabled=true;$('pauseBtn').classList.remove('hidden');$('stopBtn').classList.remove('hidden');$('pauseBtn').textContent='Ⅱ Pause';paused=false;
+ e.preventDefault();refreshRelativeRange();$('download').disabled=true;$('pauseBtn').classList.remove('hidden');$('stopBtn').classList.remove('hidden');$('pauseBtn').textContent='Ⅱ Pause';paused=false;
  $('progress_wrap').classList.remove('hidden');$('results').classList.add('hidden');$('status').textContent='Starting download...';$('status').className='status';clearLog();const payload=collect();
+const rv=validateRange();
+if(rv.errors.length){$('status').textContent=rv.errors[0];$('status').className='status error';$('download').disabled=true;$('pauseBtn').classList.add('hidden');$('stopBtn').classList.add('hidden');updateRangeNotice();return}
+jobRunning=true;
  if(!payload.start_time||!payload.end_time){$('status').textContent='Invalid time. Pick a valid start and end date/time.';$('status').className='status error';$('download').disabled=false;$('pauseBtn').classList.add('hidden');$('stopBtn').classList.add('hidden');return}
- if(Date.now()-new Date(payload.start_time)>8*24*60*60*1000){$('status').textContent="Start time is more than 8 days ago. This F5 XC log API appears to only accept requests where the start time is within the last 8 days (confirmed through testing — a 24-hour window starting 8+ days ago was still rejected). Move the start time closer to now and try again.";$('status').className='status error';$('download').disabled=false;$('pauseBtn').classList.add('hidden');$('stopBtn').classList.add('hidden');return}
  try{const r=await fetch('/api/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const j=await r.json();if(!r.ok)throw new Error(j.error||'Download failed');activeJob=j.job_id;poll(activeJob,payload)}
- catch(err){$('status').textContent=err.message;$('status').className='status error';$('download').disabled=false;$('pauseBtn').classList.add('hidden');$('stopBtn').classList.add('hidden')}
+ catch(err){jobRunning=false;$('status').textContent=err.message;$('status').className='status error';$('download').disabled=false;$('pauseBtn').classList.add('hidden');$('stopBtn').classList.add('hidden')}
 };
 async function togglePause(){
  if(!activeJob)return;
@@ -434,40 +483,29 @@ async function poll(id,payload){
  $('rate').textContent=j.rate?j.rate.toFixed(1)+' / sec':'-';$('status').textContent=j.message||'Working...';
  const el=$('log');el.innerHTML='';(j.log||[]).forEach(line=>{const sp=document.createElement('span');sp.className='log-line';sp.textContent=line;el.appendChild(sp)});el.scrollTop=el.scrollHeight;
  if(j.status==='complete'||j.status==='error'||j.status==='stopped'||j.status===undefined){
-   $('download').disabled=false;$('pauseBtn').classList.add('hidden');$('stopBtn').classList.add('hidden');$('stopBtn').disabled=false;
+   jobRunning=false;updateRangeNotice();$('pauseBtn').classList.add('hidden');$('stopBtn').classList.add('hidden');$('stopBtn').disabled=false;
    if(j.status==='complete'){$('status').className='status '+(j.complete?'success':'warning');$('results').classList.remove('hidden');$('files').innerHTML=`<div class="result-file">CSV: ${j.csv||''}</div>${j.json?`<div class="result-file">JSON: ${j.json}</div>`:''}<div class="result-file">Debug log: ${j.debug||''}</div>`;$('status').textContent=j.complete?'✓ Download complete — count validated.':'⚠ Download complete — count warning.';if(payload.open_after&&j.csv)fetch('/api/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:j.csv})})}
    else {$('status').className='status '+(j.status==='stopped'?'warning':'error');$('status').textContent=j.status==='stopped'?'Download stopped by user':'✕ '+(j.message||'The job could not be found. It may have failed to start — check the output directory and try again.')}
  }else setTimeout(()=>poll(id,payload),700)
 };
 function clearLog(){$('log').innerHTML='<span class="log-line">Log cleared.</span>'}
 /* ---- Output folder browser (server-side, since this app and browser run on the same machine) ---- */
-let browseCurrentPath='';
-function openBrowseModal(){$('browseModalBackdrop').classList.remove('hidden');browseGo($('output_dir').value||'','')}
-function closeBrowseModal(){$('browseModalBackdrop').classList.add('hidden')}
-async function browseGo(path,child){
- const params=new URLSearchParams();if(path)params.set('path',path);if(child)params.set('child',child);
- $('browseList').innerHTML='<div style="padding:12px;color:var(--muted)">Loading…</div>';
+/* ---- Output folder: opens the native Windows folder picker on this machine ---- */
+async function browseFolder(){
+ const btn=$('browseBtn'); btn.disabled=true; const orig=btn.textContent; btn.textContent='Opening…';
+ $('status').textContent='Choose a folder in the Windows folder picker.';$('status').className='status';
  try{
-  const r=await fetch('/api/browse?'+params.toString());const j=await r.json();
-  if(!r.ok||j.error){$('browseList').innerHTML='<div style="padding:12px;color:var(--bad)">'+(j.error||'Could not browse this path.')+'</div>';return}
-  browseCurrentPath=j.path;$('browsePath').value=j.path;
-  $('browseUp').innerHTML=(j.parent!=null)?'⬆ Up one level':'';
-  $('browseUp').onclick=(j.parent!=null)?(()=>browseGo(j.parent,'')):null;
-  const list=$('browseList');list.innerHTML='';
-  if(!j.dirs.length){list.innerHTML='<div style="padding:12px;color:var(--muted)">No subfolders here.</div>'}
-  j.dirs.forEach(d=>{
-   const row=document.createElement('div');row.style.cssText='padding:9px 13px;cursor:pointer;border-bottom:1px solid var(--line)';row.textContent='📁 '+d;
-   row.onclick=()=>browseGo(j.is_root_list?d:j.path,j.is_root_list?'':d);
-   row.onmouseenter=()=>row.style.background='var(--surface-soft)';row.onmouseleave=()=>row.style.background='';
-   list.appendChild(row);
-  });
- }catch(e){$('browseList').innerHTML='<div style="padding:12px;color:var(--bad)">Could not reach the local server: '+e.message+'</div>'}
+  const r=await fetch('/api/browse_native',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:$('output_dir').value})});
+  const j=await r.json();
+  if(j.ok&&j.path){$('output_dir').value=j.path;$('status').textContent='Output folder set.';$('status').className='status success'}
+  else if(j.cancelled){$('status').textContent='Ready.';$('status').className='status'}
+  else{$('status').textContent='Could not open the folder picker: '+(j.error||'unknown error')+'. You can still paste a path into the field.';$('status').className='status error'}
+ }catch(e){$('status').textContent='Could not reach the local server: '+e.message;$('status').className='status error'}
+ finally{btn.disabled=false;btn.textContent=orig}
 }
-function selectBrowseFolder(){$('output_dir').value=browseCurrentPath||$('browsePath').value;closeBrowseModal()}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBrowseModal()});
 /* ---- Check Range: quick single-record probe against F5 XC, without running a full download ---- */
 async function checkRange(){
- const payload=collect();
+ refreshRelativeRange();const payload=collect();
  if(!payload.start_time||!payload.end_time){$('status').textContent='Pick a valid start and end date/time first.';$('status').className='status error';return}
  $('status').textContent='Checking range against F5 XC…';$('status').className='status';
  try{
@@ -517,7 +555,7 @@ function applyConfig(c){
  refreshQueryMode();$('custom_wrap').classList.toggle('hidden',$('csv_mode').value!=='3');updatePreview();
 }
 async function clearConfig(){if(!confirm('Clear the saved configuration on this laptop?'))return;const r=await fetch('/api/config/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:{}})});if(r.ok){$('backupStatus').textContent='Saved configuration cleared.';$('activeConfigSource').textContent=''}}
-refreshQueryMode();updatePreview();updateTimeLabels();updateTimePreview();
+refreshQueryMode();updatePreview();updateTimeLabels();updateTimePreview();updateRangeNotice();
 </script>
 </body>
 </html>
@@ -552,8 +590,7 @@ def control_sleep(job_id, seconds):
         if c["stop"].wait(min(0.25, max(0, end-time.monotonic()))):
             raise RuntimeError("Download stopped by user")
 
-# Common CSV field set, chosen from real Access/Firewall/Audit log field names
-# (Firewall/Security events use action / sec_event_type / waf_mode - not policy_hits.*).
+# Common CSV field set, chosen from real Access/Audit/Security Events field names.
 COMMON_FIELDS = ["time","@timestamp","vh_name","method","req_path","rsp_code","user","src","src_ip","dst","dst_ip","site","domain","action","sec_event_type","waf_mode","app_firewall_name"]
 
 def clean_path(v):
@@ -602,6 +639,20 @@ def parse_record(raw):
         return flatten(obj) if isinstance(obj,dict) else {"raw_log":scalar(obj)}
     except Exception:return {"raw_log":raw}
 
+# Security Events uses the app_security API (not FirewallLogQuery). Confirmed with F5 TAC:
+# FirewallLogQuery was the wrong endpoint for security events, which caused the earlier
+# ~8-day start_time restriction. The path below follows F5's /api/data/namespaces/{ns}/<resource>
+# convention; the reference page gives the operation, not the literal REST path, so verify it
+# with Check Range on first use.
+LOG_ENDPOINTS={
+    "access":  ("access_logs", "Access Log Query V2"),
+    "audit":   ("audit_logs", "Audit Log Query V2"),
+    "security":("app_security/events", "Security Events Query"),
+}
+def normalize_log_type(v):
+    v=str(v or "access").strip().lower()
+    return "security" if v in ("firewall","security") else v
+
 def run_job(job_id,cfg):
     def update(**kw):
         with jobs_lock: jobs[job_id].update(kw)
@@ -612,15 +663,15 @@ def run_job(job_id,cfg):
     # The whole body is wrapped so a failure always reports a clean status instead of
     # silently killing the background thread and leaving the UI stuck on "running".
     csv_path=json_path=log_path=None
-    total_hits=None; received=0; batch=1; sort_values=None; complete=True; started=time.perf_counter()
+    total_hits=None; received=0; batch=1; complete=True; started=time.perf_counter()
     try:
         output_dir=Path(clean_path(cfg["output_dir"])).expanduser()
         try:
             output_dir.mkdir(parents=True,exist_ok=True)
         except OSError as e:
             raise RuntimeError(f"Cannot create or access output directory '{output_dir}': {e.strerror or e}. Check the path and your permissions, then try again.") from e
-        stamp=datetime.now().strftime("%Y%m%d_%H%M%S"); typ=cfg.get("log_type","access")
-        label={"access":"access","audit":"audit","firewall":"security_firewall"}.get(typ,typ)
+        stamp=datetime.now().strftime("%Y%m%d_%H%M%S"); typ=normalize_log_type(cfg.get("log_type","access"))
+        label={"access":"access","audit":"audit","security":"security_events"}.get(typ,typ)
         base=output_dir/f"f5xc_{label}_logs_{stamp}"; csv_path=base.with_suffix('.csv'); json_path=base.with_suffix('.json'); log_path=base.with_suffix('.debug.log'); jsonl_path=base.with_suffix('.jsonl')
         token=cfg["token"]; host=normalize_host(cfg["host"]); ns=cfg["namespace"].strip(); query=str(cfg.get("query","")).strip(); pagination=cfg.get("pagination","search_after"); sort=cfg.get("sort","ASCENDING")
         try:
@@ -628,19 +679,19 @@ def run_job(job_id,cfg):
         except Exception as e:
             raise RuntimeError(f"Invalid start/end time: {e}") from e
         batch_size=500
-        endpoints={"access":("access_logs","Access Log Query V2"),"audit":("audit_logs","Audit Log Query V2"),"firewall":("firewall_logs","Firewall Log Query")}
+        endpoints=LOG_ENDPOINTS
         if typ not in endpoints:
             raise RuntimeError(f"Unknown log type '{typ}'")
         resource,opname=endpoints[typ]; url=f"https://{host}/api/data/namespaces/{ns}/{resource}"; scroll_url=url+"/scroll"
         session=requests.Session(); session.headers.update({"Authorization":f"APIToken {token}","Content-Type":"application/json","Accept":"application/json","User-Agent":f"F5XC-Log-Tool/{APP_VERSION}"})
-        def api(url,payload,op):
+        def api(url,payload,op,method="POST"):
             for attempt in range(1,6):
                 control_wait(job_id)
                 t=time.perf_counter(); safe=dict(payload)
                 if "scroll_id" in safe:safe["scroll_id"]=f"<MASKED length={len(str(payload['scroll_id']))}>"
                 log(f"{op} | POST {url}"); log(f"Request: {json.dumps(safe,ensure_ascii=False)}","DEBUG")
                 try:
-                    resp=session.post(url,json=payload,timeout=60); elapsed=time.perf_counter()-t; log(f"HTTP {resp.status_code} | {len(resp.content):,} bytes | {elapsed:.3f}s")
+                    resp=(session.get(url,params=payload,timeout=60) if method=="GET" else session.post(url,json=payload,timeout=60)); elapsed=time.perf_counter()-t; log(f"HTTP {resp.status_code} | {len(resp.content):,} bytes | {elapsed:.3f}s")
                     if resp.status_code in {429,500,502,503,504} and attempt<5:
                         delay=2**(attempt-1); log(f"Transient HTTP {resp.status_code}; retrying in {delay}s","WARN"); control_sleep(job_id,delay); continue
                     if not resp.ok:
@@ -660,55 +711,43 @@ def run_job(job_id,cfg):
             raise RuntimeError("API request failed")
         payload={"namespace":ns,"start_time":start,"end_time":end,"limit":batch_size,"sort":sort}
         if query:payload["query"]=query
+        # CONFIRMED through direct testing: F5 XC rejects any request that sets
+        # BOTH "scroll" and "search_after" at once, with HTTP 400 ("scroll and
+        # search_after query at the same time is not possible"). Separately, earlier
+        # testing showed "search_after" alone does not reliably return a usable
+        # last_sort_values continuation token either. scroll_id is the only mechanism
+        # confirmed to work end-to-end, so both pagination options below use it - the
+        # UI choice is kept for now since removing it isn't necessary to fix this bug.
+        payload["scroll"]=True
         if pagination=="search_after":
-            # Confirmed through testing: F5 XC's Log Query V2 response does NOT
-            # reliably include last_sort_values even when "search_after" is requested -
-            # the field F5's own release notes tie search_after to is on the *Scroll*
-            # endpoint, not this one. We still ask for it (harmless if ignored), but we
-            # also request "scroll":true so the response includes a scroll_id we can
-            # fall back to - that field IS confirmed to work for pagination.
-            payload["search_after"]=True
-            payload["scroll"]=True
-            log("Search After pagination requested (with scroll_id fallback enabled, since F5 XC may not return last_sort_values directly)")
+            log("Search After pagination requested: using scroll-token continuation internally, since F5 XC does not allow combining scroll and search_after in one request, and search_after alone was not confirmed to return a usable continuation token")
         else:
-            # V2 scroll workflow: the initial query must explicitly enable scroll.
-            # Without this flag F5 XC legitimately returns the first 500 records
-            # without a scroll_id, so the downloader cannot request batch 2.
-            payload["scroll"]=True
             log("Scroll pagination enabled: initial query requests a scroll_id")
         with jsonl_path.open('w',encoding='utf-8') as jf:
             response=None
             while True:
                 control_wait(job_id)
                 if response is None:
-                    if pagination=="search_after" and sort_values is not None: payload["sort_values"]=sort_values
                     response=api(url,payload,opname)
                 if total_hits is None: total_hits=response.get("total_hits"); log(f"F5 total_hits: {total_hits}")
-                logs=response.get("logs") or []; log(f"Batch {batch}: {len(logs):,} records")
+                logs=response.get("logs") or response.get("events") or []; log(f"Batch {batch}: {len(logs):,} records")
                 if not logs: break
                 control_wait(job_id)
                 for raw in logs: jf.write(json.dumps(parse_record(raw),ensure_ascii=False,separators=(",",":"))+"\n")
                 received+=len(logs); reported=int(total_hits) if str(total_hits).isdigit() else -1; pct=100 if reported<=0 else min(100,received/reported*100); update(received=received,total_hits=total_hits,batch=batch,percent=pct); log(f"Accumulated: {received:,} | Progress: {pct:.2f}%")
                 if reported>=0 and received>=reported: break
-                if pagination=="search_after":
-                    sort_values=response.get("last_sort_values") or response.get("sort_values")
-                    sid=response.get("scroll_id","")
-                    if sort_values:
-                        log("Continuing via last_sort_values.","DEBUG"); response=None; batch+=1
-                    elif sid:
-                        log("No last_sort_values in response; continuing via scroll_id instead.","WARN")
-                        control_wait(job_id)
-                        response=api(scroll_url,{"namespace":ns,"scroll_id":sid},opname.replace('Query','Scroll')); batch+=1
-                    else:
-                        if len(logs)<batch_size: break
-                        complete=False
-                        raise RuntimeError(f"F5 XC did not return a continuation token (last_sort_values or scroll_id) after {received:,} of {total_hits} records, so the remaining records can't be fetched. Try switching Pagination to 'Scroll', or narrow the time range and download in smaller chunks.")
+                sid=response.get("scroll_id",""); log(f"scroll_id received: {'YES (masked)' if sid else 'NO'}","DEBUG")
+                if not sid:
+                    if len(logs)<batch_size: break
+                    complete=False
+                    raise RuntimeError(f"F5 XC did not return a scroll_id after {received:,} of {total_hits} records, so the remaining records can't be fetched. Try narrowing the time range and downloading in smaller batches.")
+                control_wait(job_id)
+                if typ=="security":
+                    # Security Events Scroll is a GET with scroll_id as a query parameter.
+                    response=api(scroll_url,{"scroll_id":sid},opname.replace('Query','Scroll'),method="GET")
                 else:
-                    sid=response.get("scroll_id",""); log(f"scroll_id received: {'YES (masked)' if sid else 'NO'}","DEBUG")
-                    if not sid: break
-                    control_wait(job_id)
                     response=api(scroll_url,{"namespace":ns,"scroll_id":sid},opname.replace('Query','Scroll'))
-                    batch+=1
+                batch+=1
         reported=int(total_hits) if str(total_hits).isdigit() else -1
         if reported>=0 and received!=reported:complete=False
         log(f"COUNT: F5={total_hits} | downloaded={received} | {'MATCH' if complete else 'MISMATCH'}","INFO" if complete else "WARN")
@@ -766,7 +805,8 @@ def download():
     missing=[x for x in required if not str(data.get(x,'' )).strip()]
     if missing:return jsonify({'error':'Missing required fields: '+', '.join(missing)}),400
     data['host']=normalize_host(data['host']); data['output_dir']=clean_path(data['output_dir']); data['log_type']=data.get('log_type','access'); data['pagination']=data.get('pagination','search_after'); data['sort']=data.get('sort','ASCENDING')
-    if data['log_type'] not in {'access','audit','firewall'}:return jsonify({'error':'Invalid log type'}),400
+    data['log_type']=normalize_log_type(data['log_type'])
+    if data['log_type'] not in LOG_ENDPOINTS:return jsonify({'error':'Invalid log type'}),400
     job_id=os.urandom(8).hex()
     with jobs_lock:jobs[job_id]={'status':'running','received':0,'total_hits':None,'batch':0,'percent':0,'log':[],'message':'Starting'}
     job_controls[job_id]={'paused':threading.Event(),'resume':threading.Event(),'stop':threading.Event()}
@@ -777,7 +817,7 @@ def preview():
     data=request.get_json(force=True); required=['host','namespace','token','start_time','end_time']
     missing=[x for x in required if not str(data.get(x,'')).strip()]
     if missing:return jsonify({'ok':False,'error':'Missing required fields: '+', '.join(missing)})
-    typ=data.get('log_type','access'); endpoints={"access":("access_logs","Access Log Query V2"),"audit":("audit_logs","Audit Log Query V2"),"firewall":("firewall_logs","Firewall Log Query")}
+    typ=normalize_log_type(data.get('log_type','access')); endpoints=LOG_ENDPOINTS
     if typ not in endpoints:return jsonify({'ok':False,'error':'Invalid log type'})
     try:
         start=rfc3339(data['start_time']); end=rfc3339(data['end_time'])
@@ -802,32 +842,24 @@ def preview():
         return jsonify({'ok':True,'total_hits':j.get('total_hits')})
     except requests.RequestException as e:
         return jsonify({'ok':False,'error':str(e)})
-@app.route('/api/browse')
-def browse():
-    # Server and browser run on the same local machine, so this just lists real
-    # folders on disk - the same trust boundary the app already has via the
-    # freely-typed Output directory field and the Open-file button.
-    p=clean_path(request.args.get('path','')); child=clean_path(request.args.get('child',''))
+@app.route('/api/browse_native',methods=['POST'])
+def browse_native():
+    # Runs this same script/exe with the helper flag, which opens the Windows folder dialog.
+    data=request.get_json(silent=True) or {}
+    initial=clean_path(data.get('path',''))
     try:
-        if child: p=str(Path(p)/child) if p else child
-        if not p:
-            if os.name=='nt':
-                import string
-                drives=[f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
-                return jsonify({'path':'','parent':None,'dirs':drives,'is_root_list':True})
-            p='/'
-        path=Path(p)
-        if not path.exists() or not path.is_dir():
-            return jsonify({'error':f"Path not found: {p}"}),400
-        try:
-            entries=sorted([e.name for e in path.iterdir() if e.is_dir()],key=str.lower)
-        except PermissionError:
-            return jsonify({'error':f"Permission denied: {p}"}),403
-        is_drive_root=os.name=='nt' and str(path)==path.anchor
-        parent='' if is_drive_root else (str(path.parent) if path.parent!=path else None)
-        return jsonify({'path':str(path),'parent':parent,'dirs':entries,'is_root_list':False})
+        if getattr(sys,'frozen',False): cmd=[sys.executable,_BROWSE_HELPER_FLAG,initial]
+        else: cmd=[sys.executable,os.path.abspath(__file__),_BROWSE_HELPER_FLAG,initial]
+        result=subprocess.run(cmd,capture_output=True,text=True,timeout=300)
+        err=(result.stderr or '').strip()
+        path=(result.stdout or '').strip()
+        if err: return jsonify({'ok':False,'error':err})
+        if not path: return jsonify({'ok':False,'cancelled':True})
+        return jsonify({'ok':True,'path':path})
+    except subprocess.TimeoutExpired:
+        return jsonify({'ok':False,'error':'The folder picker timed out after 5 minutes.'})
     except Exception as e:
-        return jsonify({'error':str(e)}),400
+        return jsonify({'ok':False,'error':str(e)})
 @app.route('/api/job/<job_id>')
 def job(job_id):
     with jobs_lock:return jsonify(jobs.get(job_id,{'status':'error','message':'Unknown job'}))
@@ -890,4 +922,4 @@ def config_import():
     return jsonify({'ok':True,'settings':safe})
 if __name__=='__main__':
     print(f'\nF5 XC Log Downloader V{APP_VERSION}\nOpen http://127.0.0.1:5000 in your browser.')
-    app.run(host='127.0.0.1',port=5000,debug=False)
+    app.run(host='127.0.0.1',port=5000,debug=False,threaded=True)
