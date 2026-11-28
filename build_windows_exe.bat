@@ -1,8 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 rem Version is part of the EXE name so each build is identifiable.
-set "APP_NAME=F5XC-Log-Downloader-v1.1.0"
-title F5 XC Log Downloader - Build EXE (V1.1.0)
+set "APP_NAME=F5XC-Log-Downloader-v2.0.0"
+title F5 XC Log Downloader - Build EXE (V2.0.0)
 cd /d "%~dp0"
 
 echo ============================================

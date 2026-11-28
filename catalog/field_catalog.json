@@ -1,0 +1,1529 @@
+{
+  "version": "2.0.0",
+  "note": "status: api_listed = in F5's query schema; tested = confirmed on tenant; reference = listed on the F5 reference pages (accepted by F5 per project owner; nested keys may need checking). suggestion_source: valid_values = reference says 'Valid values'; examples = reference uses 'and so on' or a partial list.",
+  "log_types": {
+    "access": [
+      {
+        "name": "time",
+        "group": "Client",
+        "label": "Event time",
+        "status": "reference",
+        "input": "text",
+        "description": "When the log record was generated."
+      },
+      {
+        "name": "user",
+        "group": "Client",
+        "label": "User",
+        "status": "reference",
+        "input": "text",
+        "description": "User from the user identification policy, or the client IP if none is set."
+      },
+      {
+        "name": "src_ip",
+        "group": "Client",
+        "label": "Client IP address",
+        "status": "reference",
+        "input": "text",
+        "description": "IP address of the client."
+      },
+      {
+        "name": "asn",
+        "group": "Client",
+        "label": "Client network (ASN)",
+        "status": "reference",
+        "input": "text",
+        "description": "Autonomous system (network) of the client, as name and number."
+      },
+      {
+        "name": "as_org",
+        "group": "Client",
+        "label": "Client network name",
+        "status": "reference",
+        "input": "text",
+        "description": "Name of the client's autonomous system (network)."
+      },
+      {
+        "name": "as_number",
+        "group": "Client",
+        "label": "AS number",
+        "status": "tested",
+        "input": "text",
+        "description": "Number of the client's autonomous system."
+      },
+      {
+        "name": "country",
+        "group": "Client",
+        "label": "Client country",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Client's country, as a two-letter ISO code."
+      },
+      {
+        "name": "region",
+        "group": "Client",
+        "label": "Client region",
+        "status": "reference",
+        "input": "text",
+        "description": "Client's region or state, as an ISO subdivision code."
+      },
+      {
+        "name": "city",
+        "group": "Client",
+        "label": "Client city",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Client's city."
+      },
+      {
+        "name": "longitude",
+        "group": "Client",
+        "label": "Client longitude",
+        "status": "reference",
+        "input": "text",
+        "description": "Geographic longitude of the client."
+      },
+      {
+        "name": "latitude",
+        "group": "Client",
+        "label": "Client latitude",
+        "status": "reference",
+        "input": "text",
+        "description": "Geographic latitude of the client."
+      },
+      {
+        "name": "tls_fingerprint",
+        "group": "Client",
+        "label": "TLS fingerprint",
+        "status": "reference",
+        "input": "text",
+        "description": "TLS client fingerprint (JA3) used to identify the client."
+      },
+      {
+        "name": "ja4_tls_fingerprint",
+        "group": "Client",
+        "label": "JA4 TLS fingerprint",
+        "status": "reference",
+        "input": "text",
+        "description": "Newer TLS client fingerprint (JA4), with fewer distinct values than JA3."
+      },
+      {
+        "name": "src_port",
+        "group": "Client",
+        "label": "Client port",
+        "status": "reference",
+        "input": "text",
+        "description": "Port number of the client."
+      },
+      {
+        "name": "browser_type",
+        "group": "Device",
+        "label": "Browser",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Browser, taken from the User-Agent header (HTTP only)."
+      },
+      {
+        "name": "device_type",
+        "group": "Device",
+        "label": "Device type",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Device type, taken from the User-Agent header (HTTP only)."
+      },
+      {
+        "name": "dst",
+        "group": "Destination",
+        "label": "Destination service",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Destination service or origin server the request was sent to."
+      },
+      {
+        "name": "dst_instance",
+        "group": "Destination",
+        "label": "Destination instance",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Specific instance (for example a pod) that handled the request."
+      },
+      {
+        "name": "dst_site",
+        "group": "Destination",
+        "label": "Destination site",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Site that sent the traffic on to the destination."
+      },
+      {
+        "name": "dst_port",
+        "group": "Destination",
+        "label": "Destination port",
+        "status": "reference",
+        "input": "text",
+        "description": "Destination port on the origin server."
+      },
+      {
+        "name": "src",
+        "group": "Source",
+        "label": "Source service",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Service that sent the request, or N:public for internet clients."
+      },
+      {
+        "name": "src_instance",
+        "group": "Source",
+        "label": "Source instance",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Specific instance that generated the traffic."
+      },
+      {
+        "name": "src_site",
+        "group": "Source",
+        "label": "Receiving site",
+        "status": "api_listed",
+        "input": "text",
+        "description": "F5 site (regional or customer edge) that received the request."
+      },
+      {
+        "name": "duration_with_no_data_tx_delay",
+        "group": "Timing",
+        "label": "Processing time (no data delay)",
+        "status": "reference",
+        "input": "text",
+        "description": "Processing time from the first byte sent to the client, until the response is complete."
+      },
+      {
+        "name": "duration_with_data_tx_delay",
+        "group": "Timing",
+        "label": "Processing time (with data delay)",
+        "status": "reference",
+        "input": "text",
+        "description": "Time spent by the load balancer and origin processing the request and response."
+      },
+      {
+        "name": "time_to_last_upstream_rx_byte",
+        "group": "Timing",
+        "label": "Time to last upstream byte",
+        "status": "reference",
+        "input": "text",
+        "description": "Seconds from the first client byte until the last origin byte was received."
+      },
+      {
+        "name": "time_to_first_upstream_rx_byte",
+        "group": "Timing",
+        "label": "Time to first upstream byte",
+        "status": "reference",
+        "input": "text",
+        "description": "Seconds from the first client byte until the origin's first byte arrived."
+      },
+      {
+        "name": "time_to_last_downstream_tx_byte",
+        "group": "Timing",
+        "label": "Time to last downstream byte",
+        "status": "reference",
+        "input": "text",
+        "description": "Seconds from the first client byte until the last byte was sent to the client."
+      },
+      {
+        "name": "time_to_first_downstream_tx_byte",
+        "group": "Timing",
+        "label": "Time to first downstream byte",
+        "status": "reference",
+        "input": "text",
+        "description": "Seconds from the first client byte until the first byte was sent to the client."
+      },
+      {
+        "name": "total_duration_seconds",
+        "group": "Timing",
+        "label": "Total request duration (s)",
+        "status": "reference",
+        "input": "text",
+        "description": "Total end-to-end processing time, in seconds."
+      },
+      {
+        "name": "rtt_upstream_seconds",
+        "group": "Timing",
+        "label": "Upstream round-trip time (s)",
+        "status": "reference",
+        "input": "text",
+        "description": "Round-trip time to the origin server, in seconds."
+      },
+      {
+        "name": "rtt_downstream_seconds",
+        "group": "Timing",
+        "label": "Client round-trip time (s)",
+        "status": "reference",
+        "input": "text",
+        "description": "Round-trip time to the client, in seconds."
+      },
+      {
+        "name": "protocol",
+        "group": "Request",
+        "label": "HTTP protocol version",
+        "status": "tested",
+        "value_suggestions": [
+          "HTTP 1.0",
+          "HTTP 1.1",
+          "HTTP 2"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "HTTP version used, such as HTTP 1.1 or HTTP 2."
+      },
+      {
+        "name": "scheme",
+        "group": "Request",
+        "label": "URL scheme",
+        "status": "reference",
+        "value_suggestions": [
+          "HTTP",
+          "HTTPS"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "URL scheme: HTTP or HTTPS."
+      },
+      {
+        "name": "method",
+        "group": "Request",
+        "label": "HTTP method",
+        "status": "tested",
+        "value_suggestions": [
+          "HEAD",
+          "GET",
+          "POST",
+          "OPTIONS"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "HTTP method, such as GET or POST."
+      },
+      {
+        "name": "authority",
+        "group": "Request",
+        "label": "Host (authority)",
+        "status": "reference",
+        "input": "text",
+        "description": "Host name in the request (the Host or :authority value)."
+      },
+      {
+        "name": "original_authority",
+        "group": "Request",
+        "label": "Original host",
+        "status": "reference",
+        "input": "text",
+        "description": "Host header as the client sent it, before any change."
+      },
+      {
+        "name": "domain",
+        "group": "Request",
+        "label": "Domain",
+        "status": "reference",
+        "input": "text",
+        "description": "Domain extracted from the host name."
+      },
+      {
+        "name": "referer",
+        "group": "Request",
+        "label": "Referer",
+        "status": "reference",
+        "input": "text",
+        "description": "Referer header: the page that linked to this request."
+      },
+      {
+        "name": "x_forwarded_for",
+        "group": "Request",
+        "label": "X-Forwarded-For",
+        "status": "reference",
+        "input": "text",
+        "description": "X-Forwarded-For header, with the address sanitized for privacy."
+      },
+      {
+        "name": "user_agent",
+        "group": "Request",
+        "label": "User agent",
+        "status": "reference",
+        "input": "text",
+        "description": "User-Agent header identifying the client software."
+      },
+      {
+        "name": "req_path",
+        "group": "Request",
+        "label": "Request path",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Request path, without query parameters."
+      },
+      {
+        "name": "req_params",
+        "group": "Request",
+        "label": "Query parameters",
+        "status": "reference",
+        "input": "text",
+        "description": "Query string parameters from the URL."
+      },
+      {
+        "name": "req_headers",
+        "group": "Request",
+        "label": "Request headers",
+        "status": "reference",
+        "input": "text",
+        "description": "Request headers, logged only when API discovery is enabled and sampled."
+      },
+      {
+        "name": "rsp_code",
+        "group": "Response",
+        "label": "Response code",
+        "status": "tested",
+        "value_suggestions": [
+          "0"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "HTTP response code. Shows 0 when the request was blocked."
+      },
+      {
+        "name": "waf_action",
+        "group": "WAF",
+        "label": "WAF action",
+        "status": "reference",
+        "value_suggestions": [
+          "allow",
+          "block"
+        ],
+        "suggestion_source": "valid_values",
+        "input": "text_with_suggestions",
+        "description": "Action the WAF recommended: allow or block."
+      },
+      {
+        "name": "bot_defense_js_injection",
+        "group": "Bot defense",
+        "label": "Bot defence JS injected",
+        "status": "reference",
+        "input": "text",
+        "description": "Whether the Bot Defense JavaScript was injected into the page."
+      },
+      {
+        "name": "insight",
+        "group": "Bot defense",
+        "label": "Bot insight",
+        "status": "reference",
+        "value_suggestions": [
+          "HUMAN",
+          "GOODBOT",
+          "MALICIOUS",
+          "UNAVAILABLE"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "Bot classification from Bot Defense: HUMAN, GOODBOT, MALICIOUS or UNAVAILABLE."
+      },
+      {
+        "name": "recommendation",
+        "group": "Bot defense",
+        "label": "Bot recommended action",
+        "status": "reference",
+        "value_suggestions": [
+          "Action_alert",
+          "Action_block",
+          "Action_redirect"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "Bot Defense recommended action, such as alert, block or redirect."
+      },
+      {
+        "name": "automation_type",
+        "group": "Bot defense",
+        "label": "Bot automation type",
+        "status": "reference",
+        "input": "text",
+        "description": "Reason the client was flagged as a bot, such as Token Missing."
+      },
+      {
+        "name": "policy_set",
+        "group": "Service policy",
+        "label": "Policy set",
+        "status": "reference",
+        "input": "text",
+        "description": "Last service policy set that ran."
+      },
+      {
+        "name": "policy",
+        "group": "Service policy",
+        "label": "Policy",
+        "status": "reference",
+        "input": "text",
+        "description": "Last service policy that ran."
+      },
+      {
+        "name": "policy_namespace",
+        "group": "Service policy",
+        "label": "Policy namespace",
+        "status": "reference",
+        "input": "text",
+        "description": "Namespace of the last service policy that ran."
+      },
+      {
+        "name": "policy_rule",
+        "group": "Service policy",
+        "label": "Policy rule",
+        "status": "reference",
+        "input": "text",
+        "description": "Last service policy rule that ran."
+      },
+      {
+        "name": "policy_rule_description",
+        "group": "Service policy",
+        "label": "Policy rule description",
+        "status": "reference",
+        "input": "text",
+        "description": "Description of that policy rule, as set in its configuration."
+      },
+      {
+        "name": "result",
+        "group": "Service policy",
+        "label": "Policy result",
+        "status": "reference",
+        "value_suggestions": [
+          "allow",
+          "deny",
+          "default_allow",
+          "default_deny"
+        ],
+        "suggestion_source": "valid_values",
+        "input": "text_with_suggestions",
+        "description": "Service policy result: allow, deny, default_allow or default_deny."
+      },
+      {
+        "name": "rate_limiter_action",
+        "group": "Service policy",
+        "label": "Rate limiter action",
+        "status": "reference",
+        "value_suggestions": [
+          "fail",
+          "pass",
+          "none"
+        ],
+        "suggestion_source": "valid_values",
+        "input": "text_with_suggestions",
+        "description": "Rate limiter result: fail, pass or none."
+      },
+      {
+        "name": "malicious_user_mitigation_action",
+        "group": "Service policy",
+        "label": "Malicious user mitigation",
+        "status": "reference",
+        "value_suggestions": [
+          "MUM_NONE",
+          "MUM_BLOCK_TEMPORARILY",
+          "MUM_JAVASCRIPT_CHALLENGE",
+          "MUM_CAPTCHA_CHALLENGE"
+        ],
+        "suggestion_source": "valid_values",
+        "input": "text_with_suggestions",
+        "description": "Action taken for a malicious user: none, temporary block, or a challenge."
+      },
+      {
+        "name": "ip_risk",
+        "group": "Service policy",
+        "label": "IP risk",
+        "status": "reference",
+        "value_suggestions": [
+          "LOW_RISK",
+          "MEDIUM_RISK",
+          "HIGH_RISK"
+        ],
+        "suggestion_source": "valid_values",
+        "input": "text_with_suggestions",
+        "description": "Risk of the client IP from the IP reputation database: LOW, MEDIUM or HIGH."
+      },
+      {
+        "name": "ip_trustscore",
+        "group": "Service policy",
+        "label": "IP trust score",
+        "status": "reference",
+        "input": "text",
+        "description": "Client IP trust score, from 0 (low trust) to 100 (high trust)."
+      },
+      {
+        "name": "ip_trustworthiness",
+        "group": "Service policy",
+        "label": "IP trustworthiness",
+        "status": "reference",
+        "value_suggestions": [
+          "LOW",
+          "MEDIUM",
+          "HIGH"
+        ],
+        "suggestion_source": "valid_values",
+        "input": "text_with_suggestions",
+        "description": "Client IP trustworthiness: LOW, MEDIUM or HIGH (the opposite of risk)."
+      },
+      {
+        "name": "ip_threat_categories",
+        "group": "Service policy",
+        "label": "IP threat categories",
+        "status": "reference",
+        "input": "text",
+        "description": "Threat categories the client IP belongs to."
+      },
+      {
+        "name": "oas_request_properties",
+        "group": "Service policy",
+        "label": "API spec request checks",
+        "status": "reference",
+        "input": "text",
+        "description": "Parts of the request checked against the API specification."
+      },
+      {
+        "name": "oas_validation_action",
+        "group": "Service policy",
+        "label": "API spec validation action",
+        "status": "reference",
+        "value_suggestions": [
+          "OAS_REPORT_VIOLATION",
+          "OAS_BLOCK_VIOLATION"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "Action taken when a request fails API specification checks."
+      },
+      {
+        "name": "connected_time",
+        "group": "Service policy",
+        "label": "Connection start time",
+        "status": "tested",
+        "input": "text",
+        "description": "When the connection started."
+      },
+      {
+        "name": "app_type",
+        "group": "Metadata",
+        "label": "App type",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Application profile name."
+      },
+      {
+        "name": "cluster_name",
+        "group": "Metadata",
+        "label": "Cluster",
+        "status": "reference",
+        "input": "text",
+        "description": "F5 cluster that routed the request."
+      },
+      {
+        "name": "has_sec_event",
+        "group": "Metadata",
+        "label": "Has security event",
+        "status": "reference",
+        "input": "text",
+        "description": "Whether a security event was generated for this request."
+      },
+      {
+        "name": "hostname",
+        "group": "Metadata",
+        "label": "Node hostname",
+        "status": "reference",
+        "input": "text",
+        "description": "Machine that generated this log record."
+      },
+      {
+        "name": "messaged",
+        "group": "Metadata",
+        "label": "Log type ID",
+        "status": "reference",
+        "input": "text",
+        "description": "Identifier of the log record type."
+      },
+      {
+        "name": "namespace",
+        "group": "Metadata",
+        "label": "Namespace",
+        "status": "reference",
+        "input": "text",
+        "description": "Namespace the virtual host was created in."
+      },
+      {
+        "name": "req_id",
+        "group": "Metadata",
+        "label": "Request ID",
+        "status": "reference",
+        "input": "text",
+        "description": "Unique ID of the request."
+      },
+      {
+        "name": "tenant",
+        "group": "Metadata",
+        "label": "Tenant",
+        "status": "reference",
+        "input": "text",
+        "description": "Tenant (organization) the resource belongs to."
+      },
+      {
+        "name": "vh_name",
+        "group": "Metadata",
+        "label": "Virtual host",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Name of the virtual host (load balancer)."
+      },
+      {
+        "name": "vh_type",
+        "group": "Metadata",
+        "label": "Virtual host type",
+        "status": "reference",
+        "value_suggestions": [
+          "VIRTUAL_SERVICE",
+          "HTTP_LOAD_BALANCER",
+          "API_GATEWAY",
+          "TCP_LOADBALANCER",
+          "PROXY",
+          "LOCAL_K8S_API_GATEWAY",
+          "CDN_LOADBALANCER"
+        ],
+        "suggestion_source": "valid_values",
+        "input": "text_with_suggestions",
+        "description": "Virtual host type, such as HTTP load balancer or API gateway."
+      },
+      {
+        "name": "timeseries_enabled",
+        "group": "Metadata",
+        "label": "DDoS protection enabled",
+        "status": "reference",
+        "input": "text",
+        "description": "Whether DDoS protection is enabled on this load balancer."
+      }
+    ],
+    "security": [
+      {
+        "name": "asn",
+        "group": "Client",
+        "label": "Client network (ASN)",
+        "status": "reference",
+        "input": "text",
+        "description": "Autonomous system (network) of the client, as name and number."
+      },
+      {
+        "name": "as_number",
+        "group": "Client",
+        "label": "AS number",
+        "status": "reference",
+        "input": "text",
+        "description": "Number of the client's autonomous system."
+      },
+      {
+        "name": "as_org",
+        "group": "Client",
+        "label": "Client network name",
+        "status": "reference",
+        "input": "text",
+        "description": "Name of the client's autonomous system (network)."
+      },
+      {
+        "name": "city",
+        "group": "Client",
+        "label": "Client city",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Client's city."
+      },
+      {
+        "name": "country",
+        "group": "Client",
+        "label": "Client country",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Client's country, as a two-letter ISO code."
+      },
+      {
+        "name": "latitude",
+        "group": "Client",
+        "label": "Client latitude",
+        "status": "reference",
+        "input": "text",
+        "description": "Geographic latitude of the client."
+      },
+      {
+        "name": "longitude",
+        "group": "Client",
+        "label": "Client longitude",
+        "status": "reference",
+        "input": "text",
+        "description": "Geographic longitude of the client."
+      },
+      {
+        "name": "region",
+        "group": "Client",
+        "label": "Client region",
+        "status": "reference",
+        "input": "text",
+        "description": "Client's region or state, as an ISO subdivision code."
+      },
+      {
+        "name": "sni",
+        "group": "Client",
+        "label": "SNI (server name)",
+        "status": "reference",
+        "input": "text",
+        "description": "Server name (SNI) requested in the TLS handshake."
+      },
+      {
+        "name": "src_ip",
+        "group": "Client",
+        "label": "Client IP address",
+        "status": "reference",
+        "input": "text",
+        "description": "IP address of the client."
+      },
+      {
+        "name": "tls_fingerprint",
+        "group": "Client",
+        "label": "TLS fingerprint",
+        "status": "reference",
+        "input": "text",
+        "description": "TLS client fingerprint (JA3) used to identify the client."
+      },
+      {
+        "name": "user",
+        "group": "Client",
+        "label": "User",
+        "status": "reference",
+        "input": "text",
+        "description": "User from the user identification policy, or the client IP if none is set."
+      },
+      {
+        "name": "browser_type",
+        "group": "Device",
+        "label": "Browser",
+        "status": "reference",
+        "input": "text",
+        "description": "Browser, taken from the User-Agent header (HTTP only)."
+      },
+      {
+        "name": "device_type",
+        "group": "Device",
+        "label": "Device type",
+        "status": "reference",
+        "input": "text",
+        "description": "Device type, taken from the User-Agent header (HTTP only)."
+      },
+      {
+        "name": "authority",
+        "group": "HTTP",
+        "label": "Host (authority)",
+        "status": "reference",
+        "input": "text",
+        "description": "Host name in the request (the Host or :authority value)."
+      },
+      {
+        "name": "domain",
+        "group": "HTTP",
+        "label": "Domain",
+        "status": "reference",
+        "input": "text",
+        "description": "Domain extracted from the host name."
+      },
+      {
+        "name": "http_version",
+        "group": "HTTP",
+        "label": "HTTP version",
+        "status": "reference",
+        "input": "text",
+        "description": "HTTP version of the request."
+      },
+      {
+        "name": "method",
+        "group": "HTTP",
+        "label": "HTTP method",
+        "status": "reference",
+        "value_suggestions": [
+          "HEAD",
+          "GET",
+          "POST",
+          "OPTIONS"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "HTTP method, such as GET or POST."
+      },
+      {
+        "name": "original_path",
+        "group": "HTTP",
+        "label": "Original path",
+        "status": "reference",
+        "input": "text",
+        "description": "Request path as received, before decoding."
+      },
+      {
+        "name": "req_headers",
+        "group": "HTTP",
+        "label": "Request headers",
+        "status": "reference",
+        "input": "text",
+        "description": "Request headers, logged only when API discovery is enabled and sampled."
+      },
+      {
+        "name": "req_path",
+        "group": "HTTP",
+        "label": "Request path",
+        "status": "reference",
+        "input": "text",
+        "description": "Request path, without query parameters."
+      },
+      {
+        "name": "req_params",
+        "group": "HTTP",
+        "label": "Query parameters",
+        "status": "reference",
+        "input": "text",
+        "description": "Query string parameters from the URL."
+      },
+      {
+        "name": "user_agent",
+        "group": "HTTP",
+        "label": "User agent",
+        "status": "reference",
+        "input": "text",
+        "description": "User-Agent header identifying the client software."
+      },
+      {
+        "name": "x_forwarded_for",
+        "group": "HTTP",
+        "label": "X-Forwarded-For",
+        "status": "reference",
+        "input": "text",
+        "description": "X-Forwarded-For header, with the address sanitized for privacy."
+      },
+      {
+        "name": "dst_ip",
+        "group": "Request",
+        "label": "Destination IP",
+        "status": "reference",
+        "input": "text",
+        "description": "IP address of the upstream (origin) server."
+      },
+      {
+        "name": "dst_port",
+        "group": "Request",
+        "label": "Destination port",
+        "status": "reference",
+        "input": "text",
+        "description": "Destination port on the origin server."
+      },
+      {
+        "name": "req_headers_size",
+        "group": "Request",
+        "label": "Request headers size",
+        "status": "reference",
+        "input": "text",
+        "description": "Size of the request headers, in bytes."
+      },
+      {
+        "name": "req_size",
+        "group": "Request",
+        "label": "Request size",
+        "status": "reference",
+        "input": "text",
+        "description": "Size of the request, in bytes."
+      },
+      {
+        "name": "src_port",
+        "group": "Request",
+        "label": "Client port",
+        "status": "reference",
+        "input": "text",
+        "description": "Port number of the client."
+      },
+      {
+        "name": "rsp_code",
+        "group": "Response",
+        "label": "Response code",
+        "status": "reference",
+        "value_suggestions": [
+          "0"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "HTTP response code. Shows 0 when the request was blocked."
+      },
+      {
+        "name": "rsp_code_class",
+        "group": "Response",
+        "label": "Response code class",
+        "status": "reference",
+        "value_suggestions": [
+          "2xx",
+          "3xx",
+          "4xx",
+          "5xx"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "Response code class: 2xx, 3xx, 4xx or 5xx."
+      },
+      {
+        "name": "rsp_size",
+        "group": "Response",
+        "label": "Response size",
+        "status": "reference",
+        "input": "text",
+        "description": "Size of the response, in bytes."
+      },
+      {
+        "name": "calculated_action",
+        "group": "WAF",
+        "label": "Calculated WAF action",
+        "status": "reference",
+        "value_suggestions": [
+          "allow",
+          "report",
+          "block"
+        ],
+        "suggestion_source": "valid_values",
+        "input": "text_with_suggestions",
+        "description": "WAF recommended action: allow, report or block."
+      },
+      {
+        "name": "action",
+        "group": "WAF",
+        "label": "Action taken",
+        "status": "reference",
+        "input": "text",
+        "description": "Action actually taken on the request."
+      },
+      {
+        "name": "waf_mode",
+        "group": "WAF",
+        "label": "WAF mode",
+        "status": "reference",
+        "value_suggestions": [
+          "allow",
+          "report",
+          "block"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "WAF mode: allow, report or block."
+      },
+      {
+        "name": "bot_info.name",
+        "group": "WAF",
+        "label": "Bot name",
+        "status": "reference",
+        "input": "text",
+        "description": "Name of the detected bot."
+      },
+      {
+        "name": "bot_info.type",
+        "group": "WAF",
+        "label": "Bot type",
+        "status": "reference",
+        "input": "text",
+        "description": "Type of the detected bot, such as Search Engine."
+      },
+      {
+        "name": "bot_info.classification",
+        "group": "WAF",
+        "label": "Bot classification",
+        "status": "reference",
+        "value_suggestions": [
+          "Malicious",
+          "Suspicious",
+          "Benign"
+        ],
+        "suggestion_source": "valid_values",
+        "input": "text_with_suggestions",
+        "description": "Bot classification: Malicious, Suspicious or Benign."
+      },
+      {
+        "name": "bot_info.anomaly",
+        "group": "WAF",
+        "label": "Bot anomaly",
+        "status": "reference",
+        "input": "text",
+        "description": "How the WAF detected the bot, such as invalid HTTP headers."
+      },
+      {
+        "name": "attack_types",
+        "group": "WAF",
+        "label": "Attack types",
+        "status": "reference",
+        "input": "text",
+        "description": "Attack types detected in the request."
+      },
+      {
+        "name": "signatures",
+        "group": "WAF",
+        "label": "Signatures matched",
+        "status": "reference",
+        "input": "text",
+        "description": "Signatures (attack patterns) matched in the request."
+      },
+      {
+        "name": "violations",
+        "group": "WAF",
+        "label": "Violations",
+        "status": "reference",
+        "input": "text",
+        "description": "Policy violations detected in the request."
+      },
+      {
+        "name": "app_type",
+        "group": "Metadata",
+        "label": "App type",
+        "status": "reference",
+        "input": "text",
+        "description": "Application profile name."
+      },
+      {
+        "name": "sec_event_type",
+        "group": "Metadata",
+        "label": "Security event type",
+        "status": "api_listed",
+        "value_suggestions": [
+          "waf_sec_event",
+          "bot_defense_sec_event",
+          "api_sec_event",
+          "svc_policy_sec_event"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "Security event type: waf_sec_event, bot_defense_sec_event, api_sec_event or svc_policy_sec_event."
+      },
+      {
+        "name": "sec_event_name",
+        "group": "Metadata",
+        "label": "Security event name",
+        "status": "reference",
+        "input": "text",
+        "description": "Security event name, such as WAF."
+      },
+      {
+        "name": "cluster_name",
+        "group": "Metadata",
+        "label": "Cluster",
+        "status": "reference",
+        "input": "text",
+        "description": "F5 cluster that routed the request."
+      },
+      {
+        "name": "hostname",
+        "group": "Metadata",
+        "label": "Node hostname",
+        "status": "reference",
+        "input": "text",
+        "description": "Machine that generated this log record."
+      },
+      {
+        "name": "messageid",
+        "group": "Metadata",
+        "label": "Message ID",
+        "status": "reference",
+        "input": "text",
+        "description": "Unique identifier of the log record type."
+      },
+      {
+        "name": "namespace",
+        "group": "Metadata",
+        "label": "Namespace",
+        "status": "reference",
+        "input": "text",
+        "description": "Namespace the virtual host was created in."
+      },
+      {
+        "name": "req_id",
+        "group": "Metadata",
+        "label": "Request ID",
+        "status": "reference",
+        "input": "text",
+        "description": "Unique ID of the request."
+      },
+      {
+        "name": "tenant",
+        "group": "Metadata",
+        "label": "Tenant",
+        "status": "reference",
+        "input": "text",
+        "description": "Tenant (organization) the resource belongs to."
+      },
+      {
+        "name": "vh_name",
+        "group": "Metadata",
+        "label": "Virtual host",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Name of the virtual host (load balancer)."
+      },
+      {
+        "name": "src",
+        "group": "Metadata",
+        "label": "Source service",
+        "status": "reference",
+        "input": "text",
+        "description": "Service that sent the request, or N:public for internet clients."
+      },
+      {
+        "name": "src_instance",
+        "group": "Metadata",
+        "label": "Source instance",
+        "status": "reference",
+        "input": "text",
+        "description": "Specific instance that generated the traffic."
+      },
+      {
+        "name": "src_site",
+        "group": "Metadata",
+        "label": "Receiving site",
+        "status": "api_listed",
+        "input": "text",
+        "description": "F5 site (regional or customer edge) that received the request."
+      }
+    ],
+    "audit": [
+      {
+        "name": "dst",
+        "group": "Destination",
+        "label": "Destination service",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Destination service or origin server the request was sent to."
+      },
+      {
+        "name": "dst_site",
+        "group": "Destination",
+        "label": "Destination site",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Site that sent the traffic on to the destination."
+      },
+      {
+        "name": "src",
+        "group": "Source",
+        "label": "Source service",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Service that sent the request, or N:public for internet clients."
+      },
+      {
+        "name": "src_site",
+        "group": "Source",
+        "label": "Receiving site",
+        "status": "api_listed",
+        "input": "text",
+        "description": "F5 site (regional or customer edge) that received the request."
+      },
+      {
+        "name": "src_instance",
+        "group": "Source",
+        "label": "Source instance",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Specific instance that generated the traffic."
+      },
+      {
+        "name": "method",
+        "group": "Request",
+        "label": "HTTP method",
+        "status": "api_listed",
+        "value_suggestions": [
+          "HEAD",
+          "GET",
+          "POST",
+          "OPTIONS"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "HTTP method, such as GET or POST."
+      },
+      {
+        "name": "req_path",
+        "group": "Request",
+        "label": "Request path",
+        "status": "api_listed",
+        "input": "text",
+        "description": "Request path, without query parameters."
+      },
+      {
+        "name": "req_headers",
+        "group": "Request",
+        "label": "Request headers",
+        "status": "reference",
+        "input": "text",
+        "description": "Request headers, logged only when API discovery is enabled and sampled."
+      },
+      {
+        "name": "req_body",
+        "group": "Request",
+        "label": "Request body",
+        "status": "reference",
+        "input": "text",
+        "description": "Request body submitted to the API."
+      },
+      {
+        "name": "req_size",
+        "group": "Request",
+        "label": "Request size",
+        "status": "reference",
+        "input": "text",
+        "description": "Size of the request, in bytes."
+      },
+      {
+        "name": "user_agent",
+        "group": "Request",
+        "label": "User agent",
+        "status": "reference",
+        "input": "text",
+        "description": "User-Agent header identifying the client software."
+      },
+      {
+        "name": "req_error",
+        "group": "Request",
+        "label": "Request error",
+        "status": "reference",
+        "input": "text",
+        "description": "Error returned when request validation or processing failed."
+      },
+      {
+        "name": "rsp_code",
+        "group": "Response",
+        "label": "Response code",
+        "status": "api_listed",
+        "value_suggestions": [
+          "0"
+        ],
+        "suggestion_source": "examples",
+        "input": "text_with_suggestions",
+        "description": "HTTP response code. Shows 0 when the request was blocked."
+      },
+      {
+        "name": "rsp_size",
+        "group": "Response",
+        "label": "Response size",
+        "status": "reference",
+        "input": "text",
+        "description": "Size of the response, in bytes."
+      },
+      {
+        "name": "rsp_seconds",
+        "group": "Response",
+        "label": "Response time (s)",
+        "status": "reference",
+        "input": "text",
+        "description": "Seconds spent processing the request and creating the response."
+      },
+      {
+        "name": "user",
+        "group": "Identity",
+        "label": "User",
+        "status": "api_listed",
+        "input": "text",
+        "description": "User from the user identification policy, or the client IP if none is set."
+      },
+      {
+        "name": "ctx_creatorid",
+        "group": "Identity",
+        "label": "Created by (user ID)",
+        "status": "reference",
+        "input": "text",
+        "description": "User ID of the person who started the operation."
+      },
+      {
+        "name": "ctx_creatorcls",
+        "group": "Identity",
+        "label": "Created by (client type)",
+        "status": "reference",
+        "input": "text",
+        "description": "Client type that sent the request, such as Prism."
+      },
+      {
+        "name": "peer_CN",
+        "group": "Identity",
+        "label": "Peer certificate name",
+        "status": "reference",
+        "input": "text",
+        "description": "Common Name from the peer certificate."
+      },
+      {
+        "name": "tenant",
+        "group": "Identity",
+        "label": "Tenant",
+        "status": "reference",
+        "input": "text",
+        "description": "Tenant (organization) the resource belongs to."
+      },
+      {
+        "name": "original_tenant",
+        "group": "Identity",
+        "label": "Original tenant",
+        "status": "reference",
+        "input": "text",
+        "description": "Tenant the request originally belonged to."
+      },
+      {
+        "name": "time",
+        "group": "Event",
+        "label": "Event time",
+        "status": "reference",
+        "input": "text",
+        "description": "When the log record was generated."
+      },
+      {
+        "name": "time_start",
+        "group": "Event",
+        "label": "Start time",
+        "status": "reference",
+        "input": "text",
+        "description": "When request processing started."
+      },
+      {
+        "name": "messageid",
+        "group": "Event",
+        "label": "Message ID",
+        "status": "reference",
+        "input": "text",
+        "description": "Unique identifier of the log record type."
+      },
+      {
+        "name": "message",
+        "group": "Event",
+        "label": "Event message",
+        "status": "reference",
+        "input": "text",
+        "description": "Summary or type of the audit event."
+      },
+      {
+        "name": "message_key",
+        "group": "Event",
+        "label": "Message key",
+        "status": "reference",
+        "input": "text",
+        "description": "Internal key used for indexing and correlation."
+      },
+      {
+        "name": "severity",
+        "group": "Event",
+        "label": "Severity",
+        "status": "reference",
+        "input": "text",
+        "description": "Severity level of the audit event."
+      },
+      {
+        "name": "trace_info",
+        "group": "Event",
+        "label": "Trace ID",
+        "status": "reference",
+        "input": "text",
+        "description": "Distributed tracing ID used to correlate requests across services."
+      },
+      {
+        "name": "rpc",
+        "group": "Event",
+        "label": "API call",
+        "status": "reference",
+        "input": "text",
+        "description": "Internal API call that was made."
+      },
+      {
+        "name": "transport",
+        "group": "Event",
+        "label": "Transport",
+        "status": "reference",
+        "input": "text",
+        "description": "Transport used by the API, such as REST or gRPC."
+      },
+      {
+        "name": "stream",
+        "group": "Event",
+        "label": "Stream",
+        "status": "reference",
+        "input": "text",
+        "description": "Internal log stream name."
+      },
+      {
+        "name": "server_id",
+        "group": "Event",
+        "label": "Server ID",
+        "status": "reference",
+        "input": "text",
+        "description": "ID of the service instance that generated the record."
+      },
+      {
+        "name": "original_topic_name",
+        "group": "Event",
+        "label": "Original topic",
+        "status": "reference",
+        "input": "text",
+        "description": "Message topic the audit event was first published to."
+      },
+      {
+        "name": "app",
+        "group": "Metadata",
+        "label": "App",
+        "status": "reference",
+        "input": "text",
+        "description": "Application name (internal)."
+      },
+      {
+        "name": "cluster_name",
+        "group": "Metadata",
+        "label": "Cluster",
+        "status": "reference",
+        "input": "text",
+        "description": "F5 cluster that routed the request."
+      },
+      {
+        "name": "hostname",
+        "group": "Metadata",
+        "label": "Node hostname",
+        "status": "reference",
+        "input": "text",
+        "description": "Machine that generated this log record."
+      },
+      {
+        "name": "host",
+        "group": "Metadata",
+        "label": "Host IP",
+        "status": "reference",
+        "input": "text",
+        "description": "Host IP address the record came from."
+      },
+      {
+        "name": "site",
+        "group": "Metadata",
+        "label": "Site",
+        "status": "reference",
+        "input": "text",
+        "description": "Site that handled the request."
+      },
+      {
+        "name": "namespace",
+        "group": "Metadata",
+        "label": "Namespace",
+        "status": "reference",
+        "input": "text",
+        "description": "Namespace the virtual host was created in."
+      },
+      {
+        "name": "kubernetes",
+        "group": "Metadata",
+        "label": "Kubernetes info",
+        "status": "reference",
+        "input": "text",
+        "description": "Internal Kubernetes details."
+      }
+    ]
+  },
+  "input_rules": {
+    "text": "Free text. Any value can be typed.",
+    "text_with_suggestions": "Free text, with a suggestion list from the reference. Suggestions are not a limit; the user can type any value.",
+    "conditions": [
+      "Equals",
+      "Not equals"
+    ]
+  }
+}

@@ -58,7 +58,10 @@ This project sits in between: a GUI that picks the right endpoint, handles pagin
 |---|---|
 | 🗃️ **Three log sources** | Access logs, Audit logs, and WAF Security Events — each using the F5 XC API it is documented for |
 | 🔄 **Automatic pagination** | Pages through large result sets automatically using scroll-token continuation, confirmed to work reliably against F5 XC's live API |
-| 🔍 **Advanced filtering** | F5 XC's native `{field="value"}` query syntax, with the documented allowed fields shown inline per log type |
+| 🖥️ **System theme** | Follows the Windows light or dark setting, with Light and Dark still available |
+| 📖 **Field reference** | Popup listing every filter field with its friendly name, F5 field name and description |
+| 🧩 **Filter builder** | Add conditions by choosing a field, Equals or Not equals, and a value. Friendly field names, suggested values from F5's reference, and quick templates. All conditions must match (AND) |
+| 🔍 **Advanced filtering** | Type F5 XC's native `{field="value"}` query syntax directly |
 | 📤 **CSV / full JSON export** | Plus an always-on activity/debug log for troubleshooting |
 | 📊 **Live progress** | Pause / resume / stop, with count validation against F5's own reported `total_hits` |
 | 💾 **Config backup/restore** | Export and share non-sensitive settings (API tokens are excluded) as a JSON file |
@@ -74,7 +77,7 @@ This project sits in between: a GUI that picks the right endpoint, handles pagin
 <summary><b>Option A — run the prebuilt Windows EXE</b></summary>
 <br>
 
-Download `F5XC-Log-Downloader-v1.1.0.exe` from the [latest Release](../../releases/latest), double-click it, then open `http://127.0.0.1:5000` in your browser.
+Download `F5XC-Log-Downloader-v2.0.0.exe` from the [latest Release](../../releases/latest), double-click it, then open `http://127.0.0.1:5000` in your browser.
 </details>
 
 <details>
@@ -95,7 +98,7 @@ Then open `http://127.0.0.1:5000`.
 ```
 build_windows_exe.bat
 ```
-This installs Flask/Requests/PyInstaller if needed, builds a onefile EXE, and drops it in `release\F5XC-Log-Downloader-v1.1.0.exe`. The version is part of the file name, so each build is identifiable.
+This installs Flask/Requests/PyInstaller if needed, builds a onefile EXE, and drops it in `release\F5XC-Log-Downloader-v2.0.0.exe`. The version is part of the file name, so each build is identifiable.
 </details>
 
 <br>
@@ -110,7 +113,8 @@ This does not by itself indicate that the application is malicious. However, use
 
 If you do not want to run the prebuilt executable, you can build the application yourself from the source code in this repository (see [Option C](#quick-start) above).
 
-**VirusTotal (v1.1.0 EXE):** 4 of 70 engines flagged the file (Bkav Pro, Microsoft, SecureAge, Skyhigh SWG). [Full report](https://www.virustotal.com/gui/file/1a19034ff20e8c63d3a7f198120f1cc55f941ae1f716f2ff1595adcf4f55e9b1/detection)
+**VirusTotal (v2.0.0 EXE):** 4 of 68 engines flagged the file (Bkav Pro, Microsoft, SecureAge, Skyhigh SWG). [Full report](https://www.virustotal.com/gui/file/a46b2f3c827e7cf159372527e85c9328f05fc3aa7db8d148be0bd991b295c249/detection)
+
 
 <br>
 
@@ -194,7 +198,7 @@ Users are responsible for ensuring that they have appropriate authorization to a
 
 ## Download
 
-The latest release, **v1.1.0**, is available on the [Releases](../../releases/latest) page, including the prebuilt Windows executable `F5XC-Log-Downloader-v1.1.0.exe`.
+The latest release, **v2.0.0**, is available on the [Releases](../../releases/latest) page, including the prebuilt Windows executable `F5XC-Log-Downloader-v2.0.0.exe`.
 
 <br>
 

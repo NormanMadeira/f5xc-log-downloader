@@ -1,0 +1,250 @@
+{
+  "version": "2.0.0",
+  "rules": "Templates use only the fields in field_catalog.json and only the operators = and !=. Placeholders must be filled before running.",
+  "templates": {
+    "access": [
+      {
+        "name": "Blocked requests",
+        "description": "Requests blocked by F5 (response code 0).",
+        "conditions": [
+          {
+            "field": "rsp_code",
+            "op": "=",
+            "value": "0"
+          }
+        ]
+      },
+      {
+        "name": "POST requests only",
+        "description": "Only HTTP POST requests.",
+        "conditions": [
+          {
+            "field": "method",
+            "op": "=",
+            "value": "POST"
+          }
+        ]
+      },
+      {
+        "name": "Exclude GET and HEAD",
+        "description": "Everything except GET and HEAD requests.",
+        "conditions": [
+          {
+            "field": "method",
+            "op": "!=",
+            "value": "GET"
+          },
+          {
+            "field": "method",
+            "op": "!=",
+            "value": "HEAD"
+          }
+        ]
+      },
+      {
+        "name": "Traffic from one country",
+        "description": "Requests from one client country (ISO code, e.g. IN).",
+        "conditions": [
+          {
+            "field": "country",
+            "op": "=",
+            "value": "",
+            "placeholder": "Country code, e.g. IN"
+          }
+        ]
+      },
+      {
+        "name": "Traffic from one autonomous system",
+        "description": "Requests from one AS number.",
+        "conditions": [
+          {
+            "field": "as_number",
+            "op": "=",
+            "value": "",
+            "placeholder": "AS number, e.g. 15169"
+          }
+        ]
+      },
+      {
+        "name": "One virtual host",
+        "description": "Requests to one load balancer.",
+        "conditions": [
+          {
+            "field": "vh_name",
+            "op": "=",
+            "value": "",
+            "placeholder": "Virtual host name"
+          }
+        ]
+      },
+      {
+        "name": "Chrome browser only",
+        "description": "Requests from Chrome browsers.",
+        "conditions": [
+          {
+            "field": "browser_type",
+            "op": "=",
+            "value": "Chrome"
+          }
+        ]
+      },
+      {
+        "name": "Responses other than 200",
+        "description": "Requests whose response code is not 200 OK.",
+        "conditions": [
+          {
+            "field": "rsp_code",
+            "op": "!=",
+            "value": "200"
+          }
+        ]
+      },
+      {
+        "name": "Successful requests (200)",
+        "description": "Requests whose response code is 200 OK.",
+        "conditions": [
+          {
+            "field": "rsp_code",
+            "op": "=",
+            "value": "200"
+          }
+        ]
+      }
+    ],
+    "security": [
+      {
+        "name": "All WAF events",
+        "description": "All WAF security events.",
+        "conditions": [
+          {
+            "field": "sec_event_type",
+            "op": "=",
+            "value": "waf_sec_event"
+          }
+        ]
+      },
+      {
+        "name": "WAF events for one virtual host",
+        "description": "WAF events on one load balancer.",
+        "conditions": [
+          {
+            "field": "sec_event_type",
+            "op": "=",
+            "value": "waf_sec_event"
+          },
+          {
+            "field": "vh_name",
+            "op": "=",
+            "value": "",
+            "placeholder": "Virtual host name"
+          }
+        ]
+      },
+      {
+        "name": "WAF events from one country",
+        "description": "WAF events from one client country.",
+        "conditions": [
+          {
+            "field": "sec_event_type",
+            "op": "=",
+            "value": "waf_sec_event"
+          },
+          {
+            "field": "country",
+            "op": "=",
+            "value": "",
+            "placeholder": "Country code, e.g. IN"
+          }
+        ]
+      },
+      {
+        "name": "Exclude one country",
+        "description": "Security events not from a given country.",
+        "conditions": [
+          {
+            "field": "country",
+            "op": "!=",
+            "value": "",
+            "placeholder": "Country code to exclude"
+          }
+        ]
+      },
+      {
+        "name": "Events from one city",
+        "description": "Security events from one client city.",
+        "conditions": [
+          {
+            "field": "city",
+            "op": "=",
+            "value": "",
+            "placeholder": "City name"
+          }
+        ]
+      },
+      {
+        "name": "Events from one source site",
+        "description": "Security events received at one F5 site.",
+        "conditions": [
+          {
+            "field": "src_site",
+            "op": "=",
+            "value": "",
+            "placeholder": "Site name"
+          }
+        ]
+      }
+    ],
+    "audit": [
+      {
+        "name": "Changes by one user",
+        "description": "Audit records for one user.",
+        "conditions": [
+          {
+            "field": "user",
+            "op": "=",
+            "value": "",
+            "placeholder": "User name or email"
+          }
+        ]
+      },
+      {
+        "name": "Write operations only",
+        "description": "Everything except read requests (GET and HEAD excluded).",
+        "conditions": [
+          {
+            "field": "method",
+            "op": "!=",
+            "value": "GET"
+          },
+          {
+            "field": "method",
+            "op": "!=",
+            "value": "HEAD"
+          }
+        ]
+      },
+      {
+        "name": "POST requests only",
+        "description": "Only POST requests (creates and some updates).",
+        "conditions": [
+          {
+            "field": "method",
+            "op": "=",
+            "value": "POST"
+          }
+        ]
+      },
+      {
+        "name": "Responses other than 200",
+        "description": "Audit records whose response code is not 200 OK.",
+        "conditions": [
+          {
+            "field": "rsp_code",
+            "op": "!=",
+            "value": "200"
+          }
+        ]
+      }
+    ]
+  }
+}

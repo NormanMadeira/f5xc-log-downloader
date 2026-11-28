@@ -1,5 +1,24 @@
 # Changelog
 
+## v2.0.0 (current)
+
+### Added
+- **Filter builder.** A new option in the Query card. Add conditions by choosing a field, a condition (Equals or Not equals), and a value. All conditions must match (AND). The preview shows the exact query sent to F5.
+- **Friendly field names** for every field in the F5 Access, Security Events and Audit reference pages: 76 Access, 55 Security Events and 40 Audit fields.
+- **Templates add conditions.** Applying a second template keeps the conditions already in the builder.
+- **Quick templates:** 9 for Access, 6 for Security Events and 4 for Audit. Templates that need a value (such as a country or a virtual host) ask you to fill it in before the download starts.
+- **Value suggestions** for fields where F5's reference lists values. Suggestions are a shortcut only. Any value can be typed.
+- **Field catalog** (`catalog/field_catalog.json`) and template file (`catalog/templates.json`), so fields and templates can be changed without changing the code.
+- **Searchable field list** in the builder. Type a friendly name (for example "Request ID") or the F5 field name (for example "req_id").
+- **Field reference popup** ("Field reference" button in the builder). Lists each field's friendly name, F5 field name and a short description, with search.
+- **System theme.** The app follows the Windows light or dark setting. Light and Dark remain available as fixed choices.
+
+### Notes
+- Only fields from the reference pages are offered. Unknown field names are silently ignored by F5 and return no results, so the builder prevents them.
+- Not supported in the builder, because F5's query API does not accept them: OR, In, wildcards, and regex. Advanced Query still accepts raw syntax.
+- Present and Not present are not included, because their behaviour has not been confirmed on the tenant.
+- Some nested fields (for example `bot_info.name`, `signatures.*`, `violations.*`) may be stored under different names in the record. If a filter on one of these returns no rows, check the field name in the XC Console JSON view.
+
 ## v1.1.0 (current)
 
 ### Added
